@@ -1,0 +1,10 @@
+# Replace the placeholders with real GitHub usernames (section 8).
+# Shared code: two approvals by team rule, enforced by review, not by GitHub.
+*                          @abbas-username
+/src/pages/home/           @abbas-username
+/src/pages/browse/         @abbas-username
+/src/pages/listing-details/ @wazan-username
+/src/pages/course-details/ @wazan-username
+/src/pages/listing-form/   @youssef-username
+/src/pages/dashboard/      @youssef-username
+/src/pages/auth/           @ayk-username
