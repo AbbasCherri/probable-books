@@ -5,6 +5,14 @@ export function useAsync(fn, deps = []) {
   const [state, setState] = useState({ data: null, error: null, loading: true })
   const [tick, setTick] = useState(0)
 
+  // New deps mean a new request: show loading now instead of the old result under the new inputs.
+  const key = [...deps, tick]
+  const [seen, setSeen] = useState(key)
+  if (seen.length !== key.length || seen.some((d, i) => !Object.is(d, key[i]))) {
+    setSeen(key)
+    setState((s) => ({ ...s, loading: true, error: null }))
+  }
+
   useEffect(() => {
     let cancelled = false
     fn()

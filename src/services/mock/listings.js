@@ -1,6 +1,5 @@
 const day = 86400000
 const ago = (d) => new Date(Date.now() - d * day).toISOString()
-const photo = (title) => [{ url: '', alt: `Cover of ${title}` }]
 
 // Photos are empty on purpose: the UI shows a ruled index card when url is ''.
 const base = (o) => ({
@@ -38,7 +37,6 @@ export const listings = [
     description: 'Used for both CHEM 201 and 202. Spine is solid. Clean after ch. 6.',
     priceCents: 4500,
     retailCents: 18900,
-    photos: photo('Organic Chemistry'),
     sellerId: 'usr_lina',
     featured: true,
     createdAt: ago(2),
