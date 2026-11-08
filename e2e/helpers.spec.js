@@ -152,12 +152,15 @@ test.describe('expectPageQuality', () => {
 
 test.describe('waitForStable', () => {
   test('waits for aria-busy placeholders to clear', async ({ page: p }) => {
+    const start = Date.now()
     await p.setContent(
       page(`<h1>Loading</h1><div id="busy" aria-busy="true"></div>
         <script>setTimeout(() => document.getElementById('busy').remove(), 800)</script>`),
     )
     await waitForStable(p)
-    await expect(p.locator('[aria-busy="true"]')).toHaveCount(0, { timeout: 0 })
+    // One-shot checks: a retrying assertion here would hide a waitForStable that returns early.
+    expect(await p.locator('[aria-busy="true"]').count()).toBe(0)
+    expect(Date.now() - start).toBeGreaterThanOrEqual(700)
   })
 })
 
