@@ -4,8 +4,9 @@ import { defineConfig } from '@playwright/test'
 const PORT = 5174
 const BASE_URL = `http://localhost:${PORT}`
 
-// Use a system Chrome/Chromium when there is one (no `playwright install` needed locally).
-// PW_CHROMIUM overrides; with neither, Playwright's bundled Chromium is used (CI).
+// Locally, use a system Chrome/Chromium when there is one (no `playwright install` needed).
+// PW_CHROMIUM overrides. In CI (GitHub runners ship a system Chrome too) the bundled
+// Chromium from `npx playwright install chromium` is used unless PW_CHROMIUM is set.
 const SYSTEM_BROWSERS = [
   '/usr/bin/chromium',
   '/usr/bin/chromium-browser',
@@ -14,7 +15,8 @@ const SYSTEM_BROWSERS = [
   '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
 ]
 const executablePath =
-  process.env.PW_CHROMIUM || SYSTEM_BROWSERS.find((path) => existsSync(path))
+  process.env.PW_CHROMIUM ||
+  (process.env.CI ? undefined : SYSTEM_BROWSERS.find((path) => existsSync(path)))
 
 // Device matrix: name-WIDTHxHEIGHT. Phones and tablets get touch and mobile emulation.
 const DEVICES = [
