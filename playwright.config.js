@@ -1,7 +1,8 @@
 import { existsSync } from 'node:fs'
 import { defineConfig } from '@playwright/test'
 
-const PORT = 5174
+// PW_PORT picks the dev-server port (default 5174) so parallel worktrees do not collide.
+const PORT = Number(process.env.PW_PORT) || 5174
 const BASE_URL = `http://localhost:${PORT}`
 
 // Locally, use a system Chrome/Chromium when there is one (no `playwright install` needed).
@@ -76,7 +77,9 @@ export default defineConfig({
   webServer: {
     command: `npm run dev -- --port ${PORT} --strictPort`,
     url: BASE_URL,
-    reuseExistingServer: !process.env.CI,
+    // Start a fresh server by default; PW_REUSE=1 attaches to one already on PORT (never in CI),
+    // which could be another checkout's server.
+    reuseExistingServer: !process.env.CI && process.env.PW_REUSE === '1',
     timeout: 60_000,
   },
 })
