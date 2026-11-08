@@ -11,10 +11,12 @@ import {
 } from './helpers'
 
 // Every page, Day and Night.
-// Hard checks are structural: the page loads, stays where we asked, and the theme applies.
-// Quality checks (one h1, no overflow, axe serious/critical, console errors) are always recorded
-// as test annotations (see the HTML report). They only fail the run, as soft assertions, with
-// E2E_STRICT=1, so known issues on main are reported without blocking.
+// Hard checks are structural (a crash fails the run): the page loads, stays where we asked, the
+// theme applies, there is at least one level-1 heading, and no console errors or page errors.
+// Quality checks (exactly one h1, no overflow, axe serious/critical, 44px targets) are always
+// recorded as test annotations (see the HTML report). They only fail the run, as soft
+// assertions, with E2E_STRICT=1, so known issues on main are reported without blocking.
+// Page specs should call expectPageQuality() instead, which hard-asserts all of them.
 const STRICT = Boolean(process.env.E2E_STRICT)
 
 const ROUTES = [
@@ -46,21 +48,23 @@ for (const theme of THEMES) {
         }
 
         await shot(page, testInfo, `${route.name}-${theme}`)
+        await expect(
+          page.getByRole('heading', { level: 1 }).first(),
+          'at least one level-1 heading (the page rendered)',
+        ).toBeVisible()
 
-        const h1Count = await page.locator('h1').count()
+        const h1Count = await page.getByRole('heading', { level: 1 }).count()
         const overflow = await measureOverflow(page)
         const violations = await runAxe(page)
         const targets = await expectTargets44(page)
-        const errors = log.errors()
 
         const issues = []
-        if (h1Count !== 1) issues.push(`h1 count is ${h1Count}`)
+        if (h1Count !== 1) issues.push(`level-1 heading count is ${h1Count}`)
         if (overflow.overflow)
-          issues.push(`overflow ${overflow.scrollWidth} > ${overflow.innerWidth}`)
+          issues.push(`overflow ${overflow.scrollWidth} > ${overflow.clientWidth}`)
         violations.forEach((v) =>
           issues.push(`axe ${v.impact} ${v.id} x${v.count}: ${v.targets.join(', ')}`),
         )
-        errors.forEach((e) => issues.push(`console ${e.type}: ${e.text}`))
 
         note('issues', String(issues.length))
         issues.forEach((issue) => note('issue', issue))
@@ -69,15 +73,17 @@ for (const theme of THEMES) {
           note('small target', `${t.tag} "${t.text}" ${t.width}x${t.height}`),
         )
         log.warnings().forEach((w) => note('console warning', w.text))
+        log.errors().forEach((e) => note('console error', `${e.type}: ${e.text}`))
 
         if (STRICT) {
-          expect.soft(h1Count, 'exactly one h1').toBe(1)
+          expect.soft(h1Count, 'exactly one level-1 heading').toBe(1)
           expect
             .soft(overflow.scrollWidth, 'no horizontal overflow')
-            .toBeLessThanOrEqual(overflow.innerWidth)
+            .toBeLessThanOrEqual(overflow.clientWidth)
           expect.soft(violations, 'axe serious/critical violations').toEqual([])
-          expect.soft(errors, 'console errors and page errors').toEqual([])
+          expect.soft(targets, 'targets smaller than 44x44px').toEqual([])
         }
+        expect(log.errors(), 'console errors and page errors').toEqual([])
       })
     }
   })
