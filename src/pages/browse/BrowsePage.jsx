@@ -27,7 +27,6 @@ export default function BrowsePage() {
     view,
     setFilter,
     toggleList,
-   
     setView,
     clear,
     activeCount,
@@ -56,6 +55,21 @@ export default function BrowsePage() {
     }
     window.scrollTo({ top: 0 })
   }, [filters.page])
+
+  // A shared link to a page that no longer exists lands on the last real page.
+  const outOfRange = !listings.loading && total > 0 && filters.page > pageCount
+  useEffect(() => {
+    if (!outOfRange) return
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (pageCount > 1) next.set('page', String(pageCount))
+        else next.delete('page')
+        return next
+      },
+      { replace: true },
+    )
+  }, [outOfRange, pageCount, setSearchParams])
 
   const removeActive = (f) => setSearchParams(removeFilter(searchParams, f))
   const onChange = (patch) =>
