@@ -1,5 +1,5 @@
 import { CATEGORIES, CONDITIONS } from '@/lib/constants'
-import { codeToSlug } from '@/lib/courses'
+import { codeToSlug, normalizeCode } from '@/lib/courses'
 import { formatPrice } from '@/lib/format'
 
 /**
@@ -102,7 +102,7 @@ export function removeFilter(searchParams, activeFilter) {
   const next = new URLSearchParams(searchParams)
   const { key, value, removeKey } = activeFilter
   if (key === 'course' || key === 'category' || key === 'condition') {
-    const norm = (v) => (key === 'course' ? v.toUpperCase().replace(/\s/g, '-') : v)
+    const norm = (v) => (key === 'course' ? (normalizeCode(v) ?? v) : v)
     const kept = next
       .getAll(removeKey)
       .flatMap((v) => v.split(','))

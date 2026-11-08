@@ -102,10 +102,9 @@ export function PriceFilter({ minPrice, maxPrice, onChange, className }) {
           className="mt-2 flex items-start gap-1.5 text-small font-medium text-redpen-600"
         >
           <CircleAlert
-            size={18}
             strokeWidth={1.5}
             aria-hidden="true"
-            className="mt-0.5 shrink-0"
+            className="mt-0.5 size-5 shrink-0"
           />
           <span>Lowest price is above highest price. Swap them.</span>
         </p>

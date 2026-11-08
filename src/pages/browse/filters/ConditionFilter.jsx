@@ -43,10 +43,12 @@ export function ConditionFilter({ selected = [], onToggle, className }) {
           )
         })}
       </div>
-      <p className="mt-2 text-small text-ink-500" aria-live="polite">
-        {first
+      <p className="mt-2 text-small text-ink-500">
+        {first && selected.length === 1
           ? `${first[1].label}: ${first[1].description}`
-          : 'Pick one or more grades. A is best.'}
+          : selected.length > 1
+            ? `${selected.length} grades picked. A is best.`
+            : 'Pick one or more grades. A is best.'}
       </p>
     </fieldset>
   )

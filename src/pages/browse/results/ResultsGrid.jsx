@@ -19,8 +19,8 @@ export function ResultsGrid({ items, loading, view, pageSize = PAGE_SIZE, classN
 
   if (loading) {
     return (
-      <div role="status" className={className}>
-        <span className="sr-only">Loading listings</span>
+      <div className={className}>
+        {/* The count above the grid says "Loading listings"; one live region is enough. */}
         <ul aria-hidden="true" className={list}>
           {Array.from({ length: SKELETON_COUNT }, (_, i) => (
             <li key={i} className="flex flex-col">
