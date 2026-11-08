@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Spiral notebook">
+<rect width="800" height="600" fill="#F5F2EA"/><path d="M0 520h800" stroke="#EAE5D8" stroke-width="4"/>
+<rect x="274" y="72" width="280" height="440" rx="8" fill="#D8D1BF"/>
+<rect x="260" y="58" width="280" height="440" rx="8" fill="#DDD5EC"/>
+<rect x="300" y="138" width="200" height="72" rx="4" fill="#FDFBF6" stroke="#1A2238" stroke-width="4"/>
+<path d="M322 166h150M322 188h100" stroke="#1A2238" stroke-width="6" stroke-linecap="round"/>
+<g fill="none" stroke="#1A2238" stroke-width="5" stroke-linecap="round"><path d="M248 96h28M248 146h28M248 196h28M248 246h28M248 296h28M248 346h28M248 396h28M248 446h28"/></g>
+<path d="M300 300h200M300 340h200M300 380h200M300 420h140" stroke="#A2A7B3" stroke-width="3"/>
+</svg>

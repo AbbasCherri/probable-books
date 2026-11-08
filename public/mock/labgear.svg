@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Safety goggles and a flask">
+<rect width="800" height="600" fill="#F5F2EA"/><path d="M0 520h800" stroke="#EAE5D8" stroke-width="4"/>
+<defs><path id="f" d="M576 140v110l-76 170c-8 18 4 36 24 36h152c20 0 32-18 24-36l-76-170V140z"/><clipPath id="c"><use href="#f"/></clipPath></defs>
+<use href="#f" fill="#FDFBF6"/>
+<rect x="490" y="360" width="220" height="100" fill="#D3E3C6" clip-path="url(#c)"/>
+<g stroke="#1A2238" stroke-width="6" stroke-linejoin="round" stroke-linecap="round" fill="none">
+<path d="M120 290c-30 0-40 30-20 40M440 290c30 0 40 30 20 40"/>
+<rect x="140" y="240" width="130" height="100" rx="40" fill="#CDDFF0"/>
+<rect x="290" y="240" width="130" height="100" rx="40" fill="#CDDFF0"/>
+<path d="M270 280c10-10 10-10 20 0"/>
+<path d="M527 360h146" stroke-width="4"/>
+<path d="M560 140h80M576 140v110l-76 170c-8 18 4 36 24 36h152c20 0 32-18 24-36l-76-170V140M592 200h24M592 240h24"/>
+</g>
+<rect x="140" y="420" width="280" height="16" rx="4" fill="#1A2238"/>
+</svg>
