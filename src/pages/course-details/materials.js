@@ -1,3 +1,5 @@
+import { codeToSlug } from '@/lib/courses'
+
 // Matches a course's required materials to its listings, the same way Browse's q search does.
 const SEARCHED = ['title', 'author', 'isbn', 'brand', 'model']
 
@@ -28,4 +30,4 @@ export function matchMaterials(materials, listings) {
   })
 }
 
-export const checklistKey = (code) => `pb.checklist.${code.replace(' ', '-')}`
+export const checklistKey = (code) => `pb.checklist.${codeToSlug(code)}`
