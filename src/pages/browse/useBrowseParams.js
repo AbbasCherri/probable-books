@@ -70,6 +70,14 @@ const PATCH = {
 export function useBrowseParams() {
   const [searchParams, setSearchParams] = useSearchParams()
 
+  // Every write starts from the address bar as it is right now, so two edits in one tick (say a
+  // debounced keyword and a price landing together) stack instead of one overwriting the other.
+  const update = useCallback(
+    (build, options) =>
+      setSearchParams(build(new URLSearchParams(window.location.search)), options),
+    [setSearchParams],
+  )
+
   const filters = useMemo(() => parseFilters(searchParams), [searchParams])
   const view = VIEWS.includes(searchParams.get('view'))
     ? searchParams.get('view')
@@ -82,7 +90,7 @@ export function useBrowseParams() {
    */
   const setFilter = useCallback(
     (patch, { replace = false } = {}) => {
-      setSearchParams(
+      update(
         (prev) => {
           const next = new URLSearchParams(prev)
           for (const [key, value] of Object.entries(patch)) {
@@ -94,10 +102,11 @@ export function useBrowseParams() {
           next.delete('page')
           return next
         },
-        { replace },
+        // Typing on page 3 must not overwrite page 3's history entry, so only replace from page 1.
+        { replace: replace && !new URLSearchParams(window.location.search).has('page') },
       )
     },
-    [setSearchParams],
+    [update],
   )
 
   /** Add or remove one value of course | category | condition. */
@@ -105,7 +114,7 @@ export function useBrowseParams() {
     (key, value) => {
       if (!MULTI_KEYS.includes(key)) return
       const stored = key === 'course' ? codeToSlug(normalizeCode(value) ?? value) : value
-      setSearchParams((prev) => {
+      update((prev) => {
         const next = new URLSearchParams(prev)
         const current = readList(prev, key)
         const has = current.some((v) => sameValue(key, v, stored))
@@ -118,43 +127,43 @@ export function useBrowseParams() {
         return next
       })
     },
-    [setSearchParams],
+    [update],
   )
 
   /** Go to page n (page 1 removes the param). */
   const setPage = useCallback(
     (n) => {
-      setSearchParams((prev) => {
+      update((prev) => {
         const next = new URLSearchParams(prev)
         if (n > 1) next.set('page', String(n))
         else next.delete('page')
         return next
       })
     },
-    [setSearchParams],
+    [update],
   )
 
   /** 'cards' (default, param omitted) or 'ledger'. */
   const setView = useCallback(
     (v) => {
-      setSearchParams((prev) => {
+      update((prev) => {
         const next = new URLSearchParams(prev)
         if (v === 'cards') next.delete('view')
         else next.set('view', v)
         return next
       })
     },
-    [setSearchParams],
+    [update],
   )
 
   /** Remove every filter and the page; keep view and sort. */
   const clear = useCallback(() => {
-    setSearchParams((prev) => {
+    update((prev) => {
       const next = new URLSearchParams(prev)
       FILTER_PARAMS.forEach((k) => next.delete(k))
       return next
     })
-  }, [setSearchParams])
+  }, [update])
 
   // Number of active filter groups (price min+max count as one).
   const activeCount = useMemo(
