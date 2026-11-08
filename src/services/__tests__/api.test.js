@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import process from 'node:process'
 
 const DB_KEY = 'pb.db.v2'
 const SESSION_KEY = 'pb.session'
@@ -334,6 +337,12 @@ describe('mock controls', () => {
     localStorage.setItem(DB_KEY, JSON.stringify({ version: 1, listings: [] }))
     await freshApi()
     expect((await api.getListings({})).total).toBeGreaterThan(120)
+  })
+
+  it('loads the seed with a dynamic import only', () => {
+    const src = readFileSync(resolve(process.cwd(), 'src/services/api.js'), 'utf8')
+    expect(src).not.toMatch(/^import .*['"]\.\/mock/m)
+    expect(src).toMatch(/await import\('\.\/mock'\)/)
   })
 
   it('resetDemoData restores the seed', async () => {

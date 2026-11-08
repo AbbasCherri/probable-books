@@ -4,7 +4,6 @@ import { CONDITIONS, PAGE_SIZE, PICKUP_SPOTS } from '@/lib/constants'
 import { normalizeCode } from '@/lib/courses'
 import { MAX_OFFER_MESSAGE, validateListingInput } from '@/lib/listingRules'
 import { readJSON, readString, writeJSON, removeKey } from '@/lib/storage'
-import { buildSeed } from './mock'
 
 export class ApiError extends Error {
   /** fields: optional { fieldName: message } for 422s, so forms can mark each input. */
@@ -39,7 +38,10 @@ const isDb = (x) =>
   x.version === DB_VERSION &&
   TABLES.every((t) => Array.isArray(x[t]))
 
+// Seed data is a dynamic import, so it (and the demo passwords) ships as its own chunk and
+// is only fetched when there is no stored database.
 async function seedDb() {
+  const { buildSeed } = await import('./mock')
   return { version: DB_VERSION, ...buildSeed() }
 }
 
