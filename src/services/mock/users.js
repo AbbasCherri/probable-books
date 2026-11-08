@@ -1,0 +1,38 @@
+export const users = [
+  {
+    id: 'usr_demo',
+    name: 'Demo Student',
+    email: 'demo@probable.books',
+    password: 'password123',
+    memberSince: '2024-10-02T00:00:00Z',
+    yearOfStudy: 2,
+    usualPickupSpot: 'Science building lobby',
+  },
+  {
+    id: 'usr_lina',
+    name: 'Lina K.',
+    email: 'lina@probable.books',
+    password: 'password123',
+    memberSince: '2024-10-14T00:00:00Z',
+    yearOfStudy: 3,
+    usualPickupSpot: 'Main library entrance',
+  },
+  {
+    id: 'usr_jad',
+    name: 'Jad M.',
+    email: 'jad@probable.books',
+    password: 'password123',
+    memberSince: '2025-01-20T00:00:00Z',
+    yearOfStudy: 1,
+    usualPickupSpot: 'Student union café',
+  },
+  {
+    id: 'usr_nour',
+    name: 'Nour Aziz',
+    email: 'nour@probable.books',
+    password: 'password123',
+    memberSince: '2025-03-05T00:00:00Z',
+    yearOfStudy: 4,
+    usualPickupSpot: 'Engineering quad',
+  },
+]
