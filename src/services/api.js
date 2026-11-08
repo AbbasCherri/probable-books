@@ -2,38 +2,78 @@
 // later the same signatures will call the real backend.
 import { CONDITIONS, PAGE_SIZE, PICKUP_SPOTS } from '@/lib/constants'
 import { normalizeCode } from '@/lib/courses'
+import { MAX_OFFER_MESSAGE, validateListingInput } from '@/lib/listingRules'
 import { readJSON, writeJSON, removeKey } from '@/lib/storage'
 import { buildSeed } from './mock'
 
 export class ApiError extends Error {
-  constructor(status, message) {
+  /** fields: optional { fieldName: message } for 422s, so forms can mark each input. */
+  constructor(status, message, fields) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    if (fields) this.fields = fields
   }
 }
 
 const SESSION_KEY = 'pb.session'
 const db = buildSeed()
-const seedCourses = db.courses
 
 const delay = () => new Promise((r) => setTimeout(r, 250 + Math.random() * 350))
-const publicUser = ({ password: _p, ...u }) => u
 const clone = (x) => structuredClone(x)
+const now = () => new Date().toISOString()
+
+let idSeq = 0
+function newId(prefix) {
+  const uuid = globalThis.crypto?.randomUUID?.()
+  if (uuid) return `${prefix}_${uuid}`
+  idSeq += 1
+  return `${prefix}_${Date.now().toString(36)}${idSeq.toString(36)}${Math.random().toString(36).slice(2, 10)}`
+}
+
+/** What anyone may see about a user: never the email or password. */
+const publicUser = (u) =>
+  u && {
+    id: u.id,
+    name: u.name,
+    memberSince: u.memberSince,
+    yearOfStudy: u.yearOfStudy,
+    usualPickupSpot: u.usualPickupSpot,
+  }
+/** The signed-in user's own record: everything but the password. */
+const selfUser = ({ password: _p, ...u }) => u
+/** Name tag for offers: { id, name }. */
+const nameTag = (u) => (u ? { id: u.id, name: u.name } : null)
+
+const findUser = (id) => db.users.find((u) => u.id === id)
+const findListing = (id) => db.listings.find((l) => l.id === id)
 
 function currentUserId() {
-  return readJSON(SESSION_KEY)?.userId ?? null
+  const id = readJSON(SESSION_KEY)?.userId ?? null
+  if (id && !findUser(id)) {
+    // The session points at someone who no longer exists (reset data, old storage).
+    removeKey(SESSION_KEY)
+    return null
+  }
+  return id
 }
 function requireUser() {
   const id = currentUserId()
   if (!id) throw new ApiError(401, 'Sign in to continue.')
   return id
 }
-const withSeller = (l) => ({
-  ...clone(l),
-  seller: publicUser(db.users.find((u) => u.id === l.sellerId)),
-})
+
+const tornOut = () => new ApiError(404, 'This page was torn out.')
+const notYours = () => new ApiError(403, 'That listing is not yours.')
+
+const withSeller = (l) => ({ ...clone(l), seller: publicUser(findUser(l.sellerId)) })
 const visible = (l) => l.status !== 'draft'
+/** Drafts exist only for their owner; everyone else gets a 404. */
+function readableListing(id) {
+  const l = findListing(id)
+  if (!l || (l.status === 'draft' && l.sellerId !== currentUserId())) throw tornOut()
+  return l
+}
 
 // ---------- listings ----------
 export async function getListings(filters = {}) {
@@ -100,32 +140,60 @@ export async function getNewListings(limit = 10) {
 
 export async function getListing(id) {
   await delay()
-  const l = db.listings.find((x) => x.id === id)
-  if (!l) throw new ApiError(404, 'This page was torn out.')
-  return withSeller(l)
+  return withSeller(readableListing(id))
 }
 
-function validateListing(data) {
-  const errors = []
-  if (!data.title || data.title.length < 5 || data.title.length > 120)
-    errors.push('Title must be 5 to 120 characters.')
-  if (!data.courseCodes?.length || data.courseCodes.length > 5)
-    errors.push('Add 1 to 5 courses.')
-  if (!data.condition || !CONDITIONS[data.condition]) errors.push('Choose the condition.')
-  if (!Number.isInteger(data.priceCents) || data.priceCents <= 0)
-    errors.push('Enter an asking price above $0.')
-  if ((data.description ?? '').length > 1000)
-    errors.push('Description is limited to 1,000 characters.')
-  if (data.pickupSpot && !PICKUP_SPOTS.includes(data.pickupSpot))
-    errors.push('Choose a campus pickup spot.')
-  if (errors.length) throw new ApiError(422, errors.join(' '))
+// Fields a client may set. Everything else (id, sellerId, featured, dates) is the server's.
+const EDITABLE = [
+  'title',
+  'category',
+  'courseCodes',
+  'author',
+  'edition',
+  'isbn',
+  'brand',
+  'model',
+  'condition',
+  'conditionNotes',
+  'description',
+  'priceCents',
+  'retailCents',
+  'openToOffers',
+  'photos',
+  'pickupSpot',
+  'status',
+]
+function editable(data) {
+  const out = {}
+  for (const k of EDITABLE) if (data && Object.hasOwn(data, k)) out[k] = data[k]
+  if (typeof out.title === 'string') out.title = out.title.trim()
+  if (Array.isArray(out.courseCodes))
+    out.courseCodes = [...new Set(out.courseCodes.map((c) => normalizeCode(c) ?? c))]
+  if (typeof out.isbn === 'string') out.isbn = out.isbn.replace(/[\s-]/g, '') || null
+  return out
+}
+
+/** Throws a 422 with field errors when the listing breaks the rules. */
+function checkListing(listing) {
+  const fields = validateListingInput(listing, { draft: listing.status === 'draft' })
+  const unknown = (listing.courseCodes ?? []).filter(
+    (c) => !db.courses.some((course) => course.code === c),
+  )
+  if (!fields.courseCodes && unknown.length)
+    fields.courseCodes = `No ${unknown[0]} in the index. Pick a course from the list.`
+  if (Object.keys(fields).length)
+    throw new ApiError(422, Object.values(fields).join(' '), fields)
 }
 
 export async function createListing(data) {
   await delay()
   const sellerId = requireUser()
-  validateListing(data)
-  const now = new Date().toISOString()
+  const input = editable(data)
+  if (input.status !== undefined && !['draft', 'active'].includes(input.status))
+    throw new ApiError(422, 'New listings start as a draft or active.', {
+      status: 'New listings start as a draft or active.',
+    })
+  const time = now()
   const listing = {
     author: null,
     edition: null,
@@ -138,14 +206,16 @@ export async function createListing(data) {
     openToOffers: true,
     photos: [],
     pickupSpot: PICKUP_SPOTS[0],
-    featured: false,
-    ...data,
-    id: `lst_${Date.now().toString(36)}`,
+    courseCodes: [],
+    ...input,
+    id: newId('lst'),
     sellerId,
-    status: data.status ?? 'active',
-    createdAt: now,
-    updatedAt: now,
+    status: input.status ?? 'active',
+    featured: false,
+    createdAt: time,
+    updatedAt: time,
   }
+  checkListing(listing)
   db.listings.unshift(listing)
   return clone(listing)
 }
@@ -154,17 +224,11 @@ export async function updateListing(id, data) {
   await delay()
   const userId = requireUser()
   const i = db.listings.findIndex((l) => l.id === id)
-  if (i < 0) throw new ApiError(404, 'This page was torn out.')
-  if (db.listings[i].sellerId !== userId)
-    throw new ApiError(401, 'That listing is not yours.')
-  const next = {
-    ...db.listings[i],
-    ...data,
-    id,
-    sellerId: userId,
-    updatedAt: new Date().toISOString(),
-  }
-  if (data.status === undefined || data.status === 'active') validateListing(next)
+  if (i < 0) throw tornOut()
+  const current = db.listings[i]
+  if (current.sellerId !== userId) throw notYours()
+  const next = { ...current, ...editable(data), updatedAt: now() }
+  checkListing(next)
   db.listings[i] = next
   return clone(next)
 }
@@ -172,9 +236,9 @@ export async function updateListing(id, data) {
 export async function deleteListing(id) {
   await delay()
   const userId = requireUser()
-  const l = db.listings.find((x) => x.id === id)
-  if (!l) throw new ApiError(404, 'This page was torn out.')
-  if (l.sellerId !== userId) throw new ApiError(401, 'That listing is not yours.')
+  const l = findListing(id)
+  if (!l) throw tornOut()
+  if (l.sellerId !== userId) throw notYours()
   db.listings = db.listings.filter((x) => x.id !== id)
   db.offers = db.offers.filter((o) => o.listingId !== id)
 }
@@ -195,7 +259,7 @@ export async function getMyListings() {
 // ---------- courses ----------
 export async function getCourses() {
   await delay()
-  return seedCourses.map((c) => ({
+  return db.courses.map((c) => ({
     ...clone(c),
     listingCount: db.listings.filter(
       (l) => l.status === 'active' && l.courseCodes.includes(c.code),
@@ -205,14 +269,15 @@ export async function getCourses() {
 
 export async function getCourse(code) {
   await delay()
+  const courses = db.courses
   const norm = normalizeCode(code)
-  const course = seedCourses.find((c) => c.code === norm)
+  const course = courses.find((c) => c.code === norm)
   if (!course) {
     const near = norm
-      ? seedCourses.filter((c) => c.department === norm.split(' ')[0]).map((c) => c.code)
+      ? courses.filter((c) => c.department === norm.split(' ')[0]).map((c) => c.code)
       : []
     const err = new ApiError(404, `No ${norm ?? code} in the index.`)
-    err.closest = near.length ? near : seedCourses.slice(0, 3).map((c) => c.code)
+    err.closest = near.length ? near : courses.slice(0, 3).map((c) => c.code)
     throw err
   }
   const prices = db.listings
@@ -235,30 +300,57 @@ export async function getCourse(code) {
 }
 
 // ---------- offers ----------
-export async function makeOffer(listingId, { amountCents, message = '' }) {
+const closedReason = {
+  reserved: 'This listing is reserved for another buyer.',
+  sold: 'This listing is sold.',
+  draft: 'This listing is not posted yet.',
+}
+
+export async function makeOffer(listingId, { amountCents, message = '' } = {}) {
   await delay()
   const buyerId = requireUser()
-  const l = db.listings.find((x) => x.id === listingId)
-  if (!l) throw new ApiError(404, 'This page was torn out.')
-  if (l.status === 'sold') throw new ApiError(422, 'This listing is sold.')
+  const l = readableListing(listingId)
   if (l.sellerId === buyerId)
     throw new ApiError(422, 'You cannot make an offer on your own listing.')
-  if (!Number.isInteger(amountCents) || amountCents <= 0 || amountCents > l.priceCents)
-    throw new ApiError(422, 'Enter an amount above $0 and at most the asking price.')
+  if (l.status !== 'active') throw new ApiError(422, closedReason[l.status])
+  if (!l.openToOffers)
+    throw new ApiError(422, "This seller isn't taking offers. Buy at the asking price.")
+  if (
+    db.offers.some(
+      (o) => o.listingId === listingId && o.buyerId === buyerId && o.status === 'pending',
+    )
+  )
+    throw new ApiError(
+      422,
+      'You already have an offer waiting on this listing. Withdraw it to make a new one.',
+    )
+  if (!Number.isInteger(amountCents) || amountCents <= 0 || amountCents > l.priceCents) {
+    const msg = 'Enter an amount above $0 and at most the asking price.'
+    throw new ApiError(422, msg, { amountCents: msg })
+  }
+  const note = String(message ?? '').trim()
+  if (note.length > MAX_OFFER_MESSAGE) {
+    const msg = `Keep the message under ${MAX_OFFER_MESSAGE} characters.`
+    throw new ApiError(422, msg, { message: msg })
+  }
   const offer = {
-    id: `off_${Date.now().toString(36)}`,
+    id: newId('off'),
     listingId,
     buyerId,
     amountCents,
-    message,
+    message: note,
     status: 'pending',
     counterCents: null,
-    createdAt: new Date().toISOString(),
+    createdAt: now(),
   }
   db.offers.unshift(offer)
   return clone(offer)
 }
 
+/**
+ * Offers you received (on your listings) or sent. Each carries a listing summary
+ * { id, title, priceCents, courseCodes, status, sellerName } and buyer/seller { id, name }.
+ */
 export async function getOffers({ direction = 'received' } = {}) {
   await delay()
   const userId = requireUser()
@@ -267,69 +359,128 @@ export async function getOffers({ direction = 'received' } = {}) {
     direction === 'received' ? mine.has(o.listingId) : o.buyerId === userId,
   )
   return rows.map((o) => {
-    const l = db.listings.find((x) => x.id === o.listingId)
+    const l = findListing(o.listingId)
+    const seller = l && findUser(l.sellerId)
     return {
       ...clone(o),
-      listing: l && { id: l.id, title: l.title, priceCents: l.priceCents },
-      buyer: publicUser(db.users.find((u) => u.id === o.buyerId)),
+      listing: l
+        ? {
+            id: l.id,
+            title: l.title,
+            priceCents: l.priceCents,
+            courseCodes: [...l.courseCodes],
+            status: l.status,
+            sellerName: seller?.name ?? null,
+          }
+        : null,
+      buyer: nameTag(findUser(o.buyerId)),
+      seller: nameTag(seller),
     }
   })
 }
 
+/** Accepting reserves the listing and declines every other pending offer on it. */
+function accept(offer, listing) {
+  if (listing.status !== 'active')
+    throw new ApiError(422, closedReason[listing.status] ?? 'This listing is closed.')
+  offer.status = 'accepted'
+  listing.status = 'reserved'
+  listing.updatedAt = now()
+  for (const o of db.offers)
+    if (o.listingId === listing.id && o.id !== offer.id && o.status === 'pending')
+      o.status = 'declined'
+}
+
+/**
+ * Seller, on a pending offer: accept, decline, counter (counterCents between the offer and
+ * the asking price). Buyer: withdraw a pending offer; on a countered one accept (at the
+ * counter), decline or withdraw.
+ */
 export async function respondToOffer(id, action, counterCents) {
   await delay()
   const userId = requireUser()
   const o = db.offers.find((x) => x.id === id)
   if (!o) throw new ApiError(404, 'Offer not found.')
-  const l = db.listings.find((x) => x.id === o.listingId)
+  const l = findListing(o.listingId)
   const isSeller = l?.sellerId === userId
-  if (action === 'withdraw') {
-    if (o.buyerId !== userId) throw new ApiError(401, 'That offer is not yours.')
-    o.status = 'withdrawn'
-  } else {
-    if (!isSeller) throw new ApiError(401, 'That listing is not yours.')
-    if (action === 'accept') {
-      o.status = 'accepted'
-      l.status = 'reserved'
-    } else if (action === 'decline') o.status = 'declined'
-    else if (action === 'counter') {
-      if (!Number.isInteger(counterCents) || counterCents <= 0)
-        throw new ApiError(422, 'Enter a counter amount above $0.')
+  const isBuyer = o.buyerId === userId
+  if (!isSeller && !isBuyer) throw new ApiError(403, 'That offer is not yours.')
+  if (!['accept', 'decline', 'counter', 'withdraw'].includes(action))
+    throw new ApiError(422, 'Unknown action.')
+  // Declining twice is harmless (the dashboard may decline offers that accepting already did).
+  if (isSeller && action === 'decline' && o.status === 'declined') return clone(o)
+
+  const closed = () => new ApiError(422, 'This offer is no longer open.')
+  if (isSeller && !isBuyer) {
+    if (action === 'withdraw') throw new ApiError(403, 'That offer is not yours.')
+    if (o.status !== 'pending') throw closed()
+    if (action === 'accept') accept(o, l)
+    else if (action === 'decline') o.status = 'declined'
+    else {
+      if (
+        !Number.isInteger(counterCents) ||
+        counterCents <= o.amountCents ||
+        counterCents >= l.priceCents
+      ) {
+        const msg = 'Counter with an amount between their offer and your asking price.'
+        throw new ApiError(422, msg, { counterCents: msg })
+      }
       o.status = 'countered'
       o.counterCents = counterCents
-    } else throw new ApiError(422, 'Unknown action.')
+    }
+  } else {
+    if (action === 'counter') throw new ApiError(403, 'Only the seller can counter.')
+    if (o.status === 'pending') {
+      if (action !== 'withdraw') throw new ApiError(403, 'That listing is not yours.')
+      o.status = 'withdrawn'
+    } else if (o.status === 'countered') {
+      if (action === 'accept') accept(o, l)
+      else o.status = action === 'withdraw' ? 'withdrawn' : 'declined'
+    } else throw closed()
   }
   return clone(o)
 }
 
 // ---------- auth ----------
+const cleanEmail = (email) =>
+  String(email ?? '')
+    .trim()
+    .toLowerCase()
+
 export async function login(email, password) {
   await delay()
-  const u = db.users.find(
-    (x) =>
-      x.email.toLowerCase() === String(email).trim().toLowerCase() &&
-      x.password === password,
-  )
+  const u = db.users.find((x) => x.email === cleanEmail(email) && x.password === password)
   if (!u) throw new ApiError(401, "That email and password don't match.")
   writeJSON(SESSION_KEY, { userId: u.id })
-  return publicUser(u)
+  return selfUser(u)
 }
 
-export async function register({ name, email, password, yearOfStudy }) {
+export async function register({ name, email, password, yearOfStudy } = {}) {
   await delay()
-  if (db.users.some((u) => u.email.toLowerCase() === String(email).toLowerCase()))
-    throw new ApiError(422, 'That email already has a card. Sign in instead.')
+  const cleanName = String(name ?? '').trim()
+  const address = cleanEmail(email)
+  const fields = {}
+  if (!cleanName) fields.name = 'Add your name.'
+  if (!/^[^\s@]+@[^\s@]+$/.test(address))
+    fields.email = 'Enter an email like you@school.edu.'
+  if (!password) fields.password = 'Choose a password.'
+  if (Object.keys(fields).length)
+    throw new ApiError(422, Object.values(fields).join(' '), fields)
+  if (db.users.some((u) => u.email === address))
+    throw new ApiError(422, 'That email already has a card. Sign in instead.', {
+      email: 'That email already has a card. Sign in instead.',
+    })
   const u = {
-    id: `usr_${Date.now().toString(36)}`,
-    name,
-    email,
+    id: newId('usr'),
+    name: cleanName,
+    email: address,
     password,
-    memberSince: new Date().toISOString(),
+    memberSince: now(),
     yearOfStudy: yearOfStudy || undefined,
   }
   db.users.push(u)
   writeJSON(SESSION_KEY, { userId: u.id })
-  return publicUser(u)
+  return selfUser(u)
 }
 
 export async function logout() {
@@ -340,6 +491,6 @@ export async function logout() {
 export async function getCurrentUser() {
   await delay()
   const id = currentUserId()
-  const u = id && db.users.find((x) => x.id === id)
-  return u ? publicUser(u) : null
+  const u = id && findUser(id)
+  return u ? selfUser(u) : null
 }
