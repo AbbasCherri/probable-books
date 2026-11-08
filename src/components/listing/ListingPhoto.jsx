@@ -28,7 +28,7 @@ export function ListingPhoto({ listing, className, loading = 'lazy', sizes }) {
     <div
       aria-hidden="true"
       className={cn(
-        'flex aspect-4/3 w-full flex-col justify-center gap-2 bg-paper-50 px-[8%] py-[6%]',
+        'flex aspect-4/3 w-full flex-col justify-center gap-1 overflow-hidden bg-paper-50 p-2 sm:gap-2 sm:p-3',
         className,
       )}
     >

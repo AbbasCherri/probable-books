@@ -34,7 +34,7 @@ function SheetPanel({ onClose, title, footer, children, className }) {
   const [dragY, setDragY] = useState(0)
   const [entered, setEntered] = useState(false)
 
-  useFocusTrap({ active: true, containerRef: panelRef, onEscape: onClose })
+  useFocusTrap(panelRef, true, { onEscape: onClose })
 
   // Slide-up: start off-screen, move to rest on the next frame. Transitions
   // are disabled globally under prefers-reduced-motion.
