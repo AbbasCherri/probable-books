@@ -1,3 +1,4 @@
+import { cn } from '@/lib/cn'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 
@@ -12,7 +13,7 @@ export function NoResults({ restrictive, onRemoveRestrictive, onClearAll, classN
     <EmptyState
       title="Nothing matches"
       note={note}
-      className={className}
+      className={cn('break-words', className)}
       action={
         restrictive ? (
           <Button variant="outline" onClick={() => onRemoveRestrictive?.(restrictive)}>

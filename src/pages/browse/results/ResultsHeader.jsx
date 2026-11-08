@@ -23,7 +23,13 @@ export function ResultsHeader({
   return (
     <header className={cn('flex flex-col gap-4', className)}>
       <div>
-        <h1 className="text-h1-sm font-semibold text-ink-900 sm:text-h1">{title}</h1>
+        <h1
+          id="browse-title"
+          tabIndex={-1}
+          className="text-h1-sm font-semibold text-ink-900 outline-none sm:text-h1"
+        >
+          {title}
+        </h1>
         <p aria-live="polite" aria-atomic="true" className="mt-1 text-ink-500">
           {loading ? 'Loading listings' : plural(total ?? 0, 'listing')}
         </p>
@@ -34,7 +40,8 @@ export function ResultsHeader({
           label="Sort"
           value={sort}
           onChange={(e) => onSortChange?.(e.target.value)}
-          className="min-w-0 flex-1 sm:max-w-64 sm:flex-none"
+          className="min-w-0 flex-[1_1_9rem] sm:max-w-64 sm:flex-none"
+          inputClassName="min-w-0 max-w-full"
         >
           {Object.entries(SORTS).map(([value, label]) => (
             <option key={value} value={value}>

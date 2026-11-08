@@ -25,10 +25,15 @@ export function PriceFilter({ minPrice, maxPrice, onChange, className }) {
     latest.current = { minPrice, maxPrice, onChange }
   })
 
+  // Follow outside changes (Clear all, a chip) one field at a time, so a number still being typed
+  // in the other box is never wiped when this one's value lands in the URL.
   const [seen, setSeen] = useState({ minPrice, maxPrice })
-  if (seen.minPrice !== minPrice || seen.maxPrice !== maxPrice) {
-    setSeen({ minPrice, maxPrice })
+  if (seen.minPrice !== minPrice) {
+    setSeen((s) => ({ ...s, minPrice }))
     if (toCents(minText) !== minPrice) setMinText(toText(minPrice))
+  }
+  if (seen.maxPrice !== maxPrice) {
+    setSeen((s) => ({ ...s, maxPrice }))
     if (toCents(maxText) !== maxPrice) setMaxText(toText(maxPrice))
   }
 

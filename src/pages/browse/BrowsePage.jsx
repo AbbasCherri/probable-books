@@ -33,6 +33,8 @@ export default function BrowsePage() {
   } = useBrowseParams()
   const isWide = useMediaQuery('(min-width: 64rem)')
   const [sheetOpen, setSheetOpen] = useState(false)
+  // Widening past lg swaps the sheet for the rail; forget it was open so narrowing does not reopen it.
+  if (isWide && sheetOpen) setSheetOpen(false)
 
   const query = searchParams.toString()
   const listings = useAsync(() => api.getListings(filters), [query])
@@ -54,24 +56,22 @@ export default function BrowsePage() {
       return
     }
     window.scrollTo({ top: 0 })
+    // Keyboard users land at the new results, not back at the pagination they just used.
+    document.getElementById('browse-title')?.focus({ preventScroll: true })
   }, [filters.page])
 
   // A shared link to a page that no longer exists lands on the last real page.
-  const outOfRange = !listings.loading && total > 0 && filters.page > pageCount
+  const outOfRange = !listings.loading && !listings.error && filters.page > pageCount
   useEffect(() => {
     if (!outOfRange) return
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev)
-        if (pageCount > 1) next.set('page', String(pageCount))
-        else next.delete('page')
-        return next
-      },
-      { replace: true },
-    )
+    const next = new URLSearchParams(window.location.search)
+    if (pageCount > 1) next.set('page', String(pageCount))
+    else next.delete('page')
+    setSearchParams(next, { replace: true })
   }, [outOfRange, pageCount, setSearchParams])
 
-  const removeActive = (f) => setSearchParams(removeFilter(searchParams, f))
+  const removeActive = (f) =>
+    setSearchParams(removeFilter(new URLSearchParams(window.location.search), f))
   const onChange = (patch) =>
     setFilter(patch, {
       replace: 'q' in patch || 'minPrice' in patch || 'maxPrice' in patch,
@@ -109,7 +109,7 @@ export default function BrowsePage() {
         <ResultsGrid
           items={listings.data?.items ?? []}
           loading={listings.loading}
-          view={view}
+          view={isWide ? view : 'cards'}
         />
         {!listings.loading && (
           <Pagination
@@ -129,7 +129,7 @@ export default function BrowsePage() {
         {isWide && (
           <aside
             aria-label="Filters"
-            className="sticky top-4 max-h-[calc(100dvh-2rem)] self-start overflow-y-auto pr-2"
+            className="sticky top-4 max-h-[calc(100dvh-2rem)] self-start overflow-y-auto p-1 pr-3"
           >
             {panel}
           </aside>
@@ -140,7 +140,7 @@ export default function BrowsePage() {
             loading={listings.loading}
             sort={filters.sort}
             onSortChange={(sort) => setFilter({ sort })}
-            view={view}
+            view={isWide ? view : 'cards'}
             onViewChange={setView}
             actions={
               !isWide && (
@@ -166,7 +166,9 @@ export default function BrowsePage() {
           title="Filters"
           footer={
             <Button className="w-full" onClick={() => setSheetOpen(false)}>
-              {`Show ${total} ${total === 1 ? 'listing' : 'listings'}`}
+              {listings.loading || listings.error
+                ? 'Show listings'
+                : `Show ${total} ${total === 1 ? 'listing' : 'listings'}`}
             </Button>
           }
         >
