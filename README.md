@@ -20,9 +20,25 @@ npm run format:check   # Prettier, no writes (npm run format to fix)
 ```
 
 Unit tests live next to the code as `*.test.js(x)`; render routed components with
-`renderWithRouter` from `@/test/render`. E2E specs and helpers live in `e2e/`; screenshots go to
-`e2e-artifacts/<project>/`. Playwright uses a system Chrome if found (or `PW_CHROMIUM=/path`),
-otherwise run `npx playwright install chromium` once. `E2E_STRICT=1` makes the smoke spec fail
-on its quality checks (h1, overflow, axe, console) instead of only annotating them.
+`renderWithRouter` from `@/test/render`. E2E specs and helpers live in `e2e/`
+(`e2e/helpers.spec.js` tests the helpers themselves); screenshots go to `e2e-artifacts/<project>/`.
+
+- **Page specs** call `expectPageQuality(page, log)` from `e2e/helpers.js`. It hard-fails on more
+  than one h1, horizontal overflow, serious/critical axe violations, targets under 44x44px and
+  console errors.
+- **The smoke spec** (`e2e/smoke.spec.js`) only hard-fails on crashes: no level-1 heading, console
+  errors, wrong URL. The other checks become annotations in `playwright-report/`, and fail only
+  with `E2E_STRICT=1`.
+
+E2E environment variables:
+
+| Variable      | Effect                                                                    |
+| ------------- | ------------------------------------------------------------------------- |
+| `PW_CHROMIUM` | Browser binary. Default: a system Chrome/Chromium locally, bundled in CI. |
+| `PW_PORT`     | Dev-server port (default 5174), to run several checkouts side by side.    |
+| `PW_REUSE=1`  | Reuse a server already on `PW_PORT` instead of starting one (not in CI).  |
+| `E2E_STRICT`  | Make the smoke spec's quality checks fail the run.                        |
+
+With no system Chrome, run `npx playwright install chromium` once.
 
 Demo login: `demo@probable.books` / `password123`. See CONTRIBUTING.md for the workflow.

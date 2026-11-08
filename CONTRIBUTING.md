@@ -14,6 +14,9 @@ GitHub Flow. `main` is always working and deployable.
 
 - `npm test` / `npm run test:watch`: Vitest unit and component tests (`src/**/*.test.{js,jsx}`).
 - `npm run e2e`: Playwright across the device matrix; pick devices with `-- --project=<name>`.
+  Page specs call `expectPageQuality(page, log)` (hard gate: one h1, no overflow, no serious
+  axe issues, 44x44px targets, no console errors). The smoke spec only hard-fails on crashes and
+  reports the rest unless `E2E_STRICT=1`.
 - `npm run format:check`: Prettier check; `npm run format` fixes.
 
 ## Branches
