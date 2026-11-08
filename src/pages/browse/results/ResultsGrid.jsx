@@ -4,13 +4,15 @@ import { cn } from '@/lib/cn'
 import { PAGE_SIZE } from '@/lib/constants'
 
 const SKELETON_COUNT = 8
+// ListingCard's title is a bare heading; keep it card-sized, not the page-section h2 size.
+const titleSize = '[&_h2]:text-body sm:[&_h2]:text-h3 [&_h2]:break-words'
 const gridClass = 'grid grid-cols-2 gap-x-3 gap-y-2 sm:gap-x-4 lg:grid-cols-3'
 
 /** Listing cards in a grid (view "cards") or a plain ledger list (view "ledger"). */
 export function ResultsGrid({ items, loading, view, pageSize = PAGE_SIZE, className }) {
   const ledger = view === 'ledger'
   const variant = ledger ? 'row' : 'card'
-  const list = ledger ? 'flex flex-col' : gridClass
+  const list = cn(titleSize, ledger ? 'flex flex-col' : gridClass)
   const shown = (items ?? []).slice(0, pageSize)
 
   if (loading) {
