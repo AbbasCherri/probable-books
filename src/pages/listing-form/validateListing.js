@@ -1,10 +1,17 @@
 import {
   MAX_DESCRIPTION,
   MAX_NOTE_LENGTH,
+  MAX_PHOTOS,
+  MAX_PRICE_CENTS,
+  MIN_PHOTOS,
   TITLE_MAX,
   TITLE_MIN,
-  toCents,
-} from './listingForm'
+  isValidIsbn,
+} from '@/lib/listingRules'
+import { formatPrice } from '@/lib/format'
+import { toCents } from './listingForm'
+
+export { isValidIsbn }
 
 // Field order matches the page, so the error summary reads top to bottom.
 const ORDER = [
@@ -34,22 +41,6 @@ export const FIELD_IDS = {
   pickupSpot: 'listing-pickup',
 }
 
-/** ISBN-10 or ISBN-13 with a valid check digit. Spaces and hyphens are ignored. */
-export function isValidIsbn(raw) {
-  const s = String(raw).replace(/[\s-]/g, '').toUpperCase()
-  if (/^\d{9}[\dX]$/.test(s)) {
-    let sum = 0
-    for (let i = 0; i < 10; i += 1) sum += (s[i] === 'X' ? 10 : Number(s[i])) * (10 - i)
-    return sum % 11 === 0
-  }
-  if (/^\d{13}$/.test(s)) {
-    let sum = 0
-    for (let i = 0; i < 13; i += 1) sum += Number(s[i]) * (i % 2 === 0 ? 1 : 3)
-    return sum % 10 === 0
-  }
-  return false
-}
-
 /** Returns { field: message } for every problem. Messages say how to fix it. */
 export function validateListing(form) {
   const e = {}
@@ -75,11 +66,15 @@ export function validateListing(form) {
     e.conditionNotes = `Keep each condition note under ${MAX_NOTE_LENGTH} characters.`
   }
 
-  if (form.photos.length === 0)
+  if (form.photos.length < MIN_PHOTOS)
     e.photos = 'Add at least one photo. The first one is the cover.'
+  else if (form.photos.length > MAX_PHOTOS)
+    e.photos = `Add up to ${MAX_PHOTOS} photos. The first one is the cover.`
 
   const price = toCents(form.price)
   if (!price || price <= 0) e.price = 'Enter an asking price above $0.'
+  else if (price > MAX_PRICE_CENTS)
+    e.price = `Keep the asking price at or under ${formatPrice(MAX_PRICE_CENTS)}.`
 
   if (form.retail.trim()) {
     const retail = toCents(form.retail)

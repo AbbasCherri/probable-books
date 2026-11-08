@@ -1,13 +1,21 @@
 // Form state for the sell form, and conversion to and from the API's Listing shape.
 // Money stays as typed text in the form and becomes integer cents only at the edges.
 
-export const MAX_COURSES = 5
-export const MAX_NOTES = 5
-export const MAX_NOTE_LENGTH = 80
-export const MAX_PHOTOS = 6
-export const MAX_DESCRIPTION = 1000
-export const TITLE_MIN = 5
-export const TITLE_MAX = 120
+import { centsToInput, parsePriceToCents } from '@/lib/format'
+
+// Limits live in listingRules so the form and the API agree.
+export {
+  MAX_COURSES,
+  MAX_DESCRIPTION,
+  MAX_NOTES,
+  MAX_NOTE_LENGTH,
+  MAX_PHOTOS,
+  MAX_PRICE_CENTS,
+  MIN_PHOTOS,
+  TITLE_MAX,
+  TITLE_MIN,
+} from '@/lib/listingRules'
+export { centsToInput }
 
 let keySeq = 0
 /** Stable React key for rows that can be added and removed (notes, photos). */
@@ -36,18 +44,7 @@ export const EMPTY_FORM = {
 }
 
 /** "45" or "45.50" -> 4500. Empty or invalid -> null. */
-export function toCents(value) {
-  const clean = String(value ?? '').replace(/[^0-9.]/g, '')
-  if (!clean) return null
-  const n = Number.parseFloat(clean)
-  return Number.isFinite(n) ? Math.round(n * 100) : null
-}
-
-/** 4500 -> "45", 4550 -> "45.50". */
-export function centsToInput(cents) {
-  if (cents == null) return ''
-  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2)
-}
+export const toCents = parsePriceToCents
 
 /** URL form "CHEM-201" -> display form "CHEM 201". Returns null if it isn't a course code. */
 export function courseFromSlug(slug) {
