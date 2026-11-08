@@ -82,11 +82,27 @@ describe('reads', () => {
     await expectError(api.getListing(drafts[0].id), 404)
   })
 
-  it('never leaks passwords or emails of other users', async () => {
+  it('gives the seller block what 5.3 needs, email only when signed in', async () => {
     const l = await api.getListing('lst_001')
-    expect(l.seller.name).toBeTruthy()
+    expect(l.seller).toMatchObject({
+      id: 'usr_lina',
+      name: 'Lina K.',
+      usualPickupSpot: 'Main library entrance',
+    })
+    expect(l.seller.memberSince).toBeTruthy()
     expect(l.seller).not.toHaveProperty('password')
     expect(l.seller).not.toHaveProperty('email')
+    const all = await api.getListings({ pageSize: 1000 })
+    const active = all.items.filter(
+      (x) => x.sellerId === 'usr_lina' && x.status === 'active',
+    ).length
+    expect(active).toBeGreaterThan(1)
+    expect(l.seller.activeListingCount).toBe(active)
+
+    await asDemo()
+    const signedIn = await api.getListing('lst_001')
+    expect(signedIn.seller.email).toBe('lina@probable.books')
+    expect(signedIn.seller).not.toHaveProperty('password')
   })
 })
 
@@ -225,26 +241,32 @@ describe('offers', () => {
     await expect(api.makeOffer('lst_006', { amountCents: 1100 })).resolves.toBeTruthy()
   })
 
-  it('accepting reserves the listing and declines the other pending offers', async () => {
+  it('accepting reserves the listing and leaves the other offers pending (5.6)', async () => {
     await asDemo()
     const before = (await api.getOffers({ direction: 'received' })).filter(
       (o) => o.listingId === 'lst_002' && o.status === 'pending',
     )
     expect(before.length).toBeGreaterThanOrEqual(3)
-    const [first, ...rest] = before
+    const [first, second, ...rest] = before
     const accepted = await api.respondToOffer(first.id, 'accept')
     expect(accepted.status).toBe('accepted')
     const listing = await api.getListing('lst_002')
     expect(listing.status).toBe('reserved')
     const after = await api.getOffers({ direction: 'received' })
-    for (const o of rest) expect(after.find((x) => x.id === o.id).status).toBe('declined')
-    // The dashboard still marks it reserved and declines "the others" afterwards.
+    for (const o of [second, ...rest])
+      expect(after.find((x) => x.id === o.id).status).toBe('pending')
+    // The listing is reserved now, so a second accept is refused.
+    await expectError(api.respondToOffer(second.id, 'accept'), 422)
+    // The dashboard marks it reserved, then offers to decline the others.
     await expect(
       api.updateListing('lst_002', { status: 'reserved' }),
     ).resolves.toBeTruthy()
-    await expect(api.respondToOffer(rest[0].id, 'decline')).resolves.toMatchObject({
-      status: 'declined',
-    })
+    for (const o of [second, ...rest])
+      await expect(api.respondToOffer(o.id, 'decline')).resolves.toMatchObject({
+        status: 'declined',
+      })
+    // Declined is final.
+    await expectError(api.respondToOffer(second.id, 'decline'), 422)
   })
 
   it('only acts on pending offers, by the right party', async () => {
@@ -338,6 +360,38 @@ describe('mock controls', () => {
     localStorage.setItem(DB_KEY, JSON.stringify({ version: 1, listings: [] }))
     await freshApi()
     expect((await api.getListings({})).total).toBeGreaterThan(120)
+  })
+
+  it('keeps seed dates fresh when stored data is days old', async () => {
+    await asDemo()
+    const mine = await api.createListing(newListing({ title: 'My own goggles' }))
+    const DAY = 86400000
+    const back = (iso) => new Date(Date.parse(iso) - 10 * DAY).toISOString()
+    const stored = JSON.parse(localStorage.getItem(DB_KEY))
+    expect(stored.seededAt).toBeTruthy()
+    // Pretend the data was seeded ten days ago and has sat in storage since.
+    stored.seededAt = back(stored.seededAt)
+    for (const row of [...stored.listings, ...stored.offers]) {
+      if (row.id === mine.id) continue
+      row.createdAt = back(row.createdAt)
+      row.updatedAt &&= back(row.updatedAt)
+    }
+    const fixed = '2026-01-02T03:04:05.000Z'
+    const own = stored.listings.find((x) => x.id === mine.id)
+    own.createdAt = fixed
+    own.updatedAt = fixed
+    localStorage.setItem(DB_KEY, JSON.stringify(stored))
+
+    await freshApi()
+    const fresh = await api.getListing('lst_022')
+    expect(Date.now() - Date.parse(fresh.createdAt)).toBeLessThan(DAY)
+    const offer = (await api.getOffers({ direction: 'received' })).find(
+      (o) => o.id === 'off_002',
+    )
+    expect(Date.now() - Date.parse(offer.createdAt)).toBeLessThan(DAY)
+    expect((await api.getListing(mine.id)).createdAt).toBe(fixed)
+    const saved = JSON.parse(localStorage.getItem(DB_KEY))
+    expect(Date.now() - Date.parse(saved.seededAt)).toBeLessThan(60000)
   })
 
   it('loads the seed with a dynamic import only', () => {

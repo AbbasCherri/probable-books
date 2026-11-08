@@ -457,22 +457,24 @@ export async function getOffers({ direction = 'received' } = {}) {
   })
 }
 
-/** Accepting reserves the listing and declines every other pending offer on it. */
+/**
+ * Accepting marks the offer accepted and the listing reserved (doc 5.6). Other pending
+ * offers stay pending: the dashboard then offers to decline them.
+ */
 function accept(offer, listing) {
   if (listing.status !== 'active')
     throw new ApiError(422, closedReason[listing.status] ?? 'This listing is closed.')
   offer.status = 'accepted'
   listing.status = 'reserved'
   listing.updatedAt = now()
-  for (const o of db.offers)
-    if (o.listingId === listing.id && o.id !== offer.id && o.status === 'pending')
-      o.status = 'declined'
 }
 
 /**
- * Seller, on a pending offer: accept, decline, counter (counterCents between the offer and
- * the asking price). Buyer: withdraw a pending offer; on a countered one accept (at the
- * counter), decline or withdraw.
+ * Seller, on a pending offer: accept (the listing must be active; it becomes reserved),
+ * decline (also allowed once the listing is reserved, for the other offers), counter
+ * (counterCents between the offer and the asking price). Buyer: withdraw a pending offer;
+ * on a countered one accept (at the counter), decline or withdraw. Anything else, or an
+ * offer that is no longer open, is a 422.
  */
 export async function respondToOffer(id, action, counterCents) {
   await begin('respondToOffer')
@@ -485,8 +487,6 @@ export async function respondToOffer(id, action, counterCents) {
   if (!isSeller && !isBuyer) throw new ApiError(403, 'That offer is not yours.')
   if (!['accept', 'decline', 'counter', 'withdraw'].includes(action))
     throw new ApiError(422, 'Unknown action.')
-  // Declining twice is harmless (the dashboard may decline offers that accepting already did).
-  if (isSeller && action === 'decline' && o.status === 'declined') return clone(o)
 
   const closed = () => new ApiError(422, 'This offer is no longer open.')
   if (isSeller && !isBuyer) {
