@@ -1,0 +1,17 @@
+/*
+ * Listing Details: the sticky action bar below lg (doc 3, Mobile first).
+ * Plain CSS because Tailwind has no safe-area utility and arbitrary values are off-limits.
+ */
+
+/* Clear the home indicator. 0.75rem matches the bar's pt-3. */
+.listing-action-bar {
+  padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* While the bar shows, anything scrolled into view (keyboard focus, #footnote jumps) stops
+   above it instead of underneath. 6.5rem covers the bar with a little air, at any text size. */
+@media (width < 64rem) {
+  html:has(.listing-action-bar) {
+    scroll-padding-bottom: calc(6.5rem + env(safe-area-inset-bottom, 0px));
+  }
+}
