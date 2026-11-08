@@ -3,7 +3,7 @@
 import { CONDITIONS, PAGE_SIZE, PICKUP_SPOTS } from '@/lib/constants'
 import { normalizeCode } from '@/lib/courses'
 import { MAX_OFFER_MESSAGE, validateListingInput } from '@/lib/listingRules'
-import { readJSON, writeJSON, removeKey } from '@/lib/storage'
+import { readJSON, readString, writeJSON, removeKey } from '@/lib/storage'
 import { buildSeed } from './mock'
 
 export class ApiError extends Error {
@@ -17,9 +17,81 @@ export class ApiError extends Error {
 }
 
 const SESSION_KEY = 'pb.session'
-const db = buildSeed()
+// The mock database lives in memory and is saved to localStorage after every write.
+// Bump DB_VERSION whenever the seed changes shape: stored data from an older version is
+// thrown away and reseeded.
+const DB_KEY = 'pb.db.v2'
+const DB_VERSION = 2
+// Dev controls, set in the browser console:
+//   localStorage['pb.mock.latency'] = '0'                  delay in ms (default 250 to 600)
+//   localStorage['pb.mock.fail'] = 'getListings,makeOffer'  or '*': those throw ApiError(500)
+const LATENCY_KEY = 'pb.mock.latency'
+const FAIL_KEY = 'pb.mock.fail'
+const DEV = import.meta.env.DEV || import.meta.env.MODE === 'test'
+const TABLES = ['courses', 'users', 'listings', 'offers']
 
-const delay = () => new Promise((r) => setTimeout(r, 250 + Math.random() * 350))
+let db = null
+let ready = null
+
+const isDb = (x) =>
+  !!x &&
+  typeof x === 'object' &&
+  x.version === DB_VERSION &&
+  TABLES.every((t) => Array.isArray(x[t]))
+
+async function seedDb() {
+  return { version: DB_VERSION, ...buildSeed() }
+}
+
+function save() {
+  writeJSON(DB_KEY, db)
+}
+
+/** Loads the stored database once (or seeds a fresh one). Every API call awaits it. */
+function ensureDb() {
+  ready ??= (async () => {
+    const stored = readJSON(DB_KEY)
+    if (isDb(stored)) db = stored
+    else {
+      db = await seedDb()
+      save()
+    }
+    currentUserId() // drops a session whose user is gone
+  })().catch((err) => {
+    ready = null
+    throw err
+  })
+  return ready
+}
+
+function latency() {
+  const raw = readString(LATENCY_KEY)?.replace(/"/g, '').trim()
+  const ms = raw ? Number(raw) : Number.NaN
+  return Number.isFinite(ms) && ms >= 0 ? ms : 250 + Math.random() * 350
+}
+
+function failSwitch(name) {
+  if (!DEV) return
+  const names = (readString(FAIL_KEY) ?? '').split(',').map((n) => n.trim())
+  if (names.includes('*') || names.includes(name))
+    throw new ApiError(500, 'Simulated failure')
+}
+
+/** Start of every API function: data loaded, simulated network delay, failure switch. */
+async function begin(name) {
+  await ensureDb()
+  const ms = latency()
+  if (ms > 0) await new Promise((r) => setTimeout(r, ms))
+  failSwitch(name)
+}
+
+/** Throws away every change and restores the seed (dev tools, demos, tests). */
+export async function resetDemoData() {
+  await ensureDb()
+  db = await seedDb()
+  save()
+  currentUserId()
+}
 const clone = (x) => structuredClone(x)
 const now = () => new Date().toISOString()
 
@@ -77,7 +149,7 @@ function readableListing(id) {
 
 // ---------- listings ----------
 export async function getListings(filters = {}) {
-  await delay()
+  await begin('getListings')
   const {
     q,
     courses = [],
@@ -124,12 +196,12 @@ export async function getListings(filters = {}) {
 }
 
 export async function getFeaturedListings() {
-  await delay()
+  await begin('getFeaturedListings')
   return clone(db.listings.filter((l) => l.featured && l.status === 'active').slice(0, 5))
 }
 
 export async function getNewListings(limit = 10) {
-  await delay()
+  await begin('getNewListings')
   return clone(
     db.listings
       .filter((l) => l.status === 'active')
@@ -139,7 +211,7 @@ export async function getNewListings(limit = 10) {
 }
 
 export async function getListing(id) {
-  await delay()
+  await begin('getListing')
   return withSeller(readableListing(id))
 }
 
@@ -186,7 +258,7 @@ function checkListing(listing) {
 }
 
 export async function createListing(data) {
-  await delay()
+  await begin('createListing')
   const sellerId = requireUser()
   const input = editable(data)
   if (input.status !== undefined && !['draft', 'active'].includes(input.status))
@@ -217,11 +289,12 @@ export async function createListing(data) {
   }
   checkListing(listing)
   db.listings.unshift(listing)
+  save()
   return clone(listing)
 }
 
 export async function updateListing(id, data) {
-  await delay()
+  await begin('updateListing')
   const userId = requireUser()
   const i = db.listings.findIndex((l) => l.id === id)
   if (i < 0) throw tornOut()
@@ -230,21 +303,23 @@ export async function updateListing(id, data) {
   const next = { ...current, ...editable(data), updatedAt: now() }
   checkListing(next)
   db.listings[i] = next
+  save()
   return clone(next)
 }
 
 export async function deleteListing(id) {
-  await delay()
+  await begin('deleteListing')
   const userId = requireUser()
   const l = findListing(id)
   if (!l) throw tornOut()
   if (l.sellerId !== userId) throw notYours()
   db.listings = db.listings.filter((x) => x.id !== id)
   db.offers = db.offers.filter((o) => o.listingId !== id)
+  save()
 }
 
 export async function getMyListings() {
-  await delay()
+  await begin('getMyListings')
   const userId = requireUser()
   return db.listings
     .filter((l) => l.sellerId === userId)
@@ -258,7 +333,7 @@ export async function getMyListings() {
 
 // ---------- courses ----------
 export async function getCourses() {
-  await delay()
+  await begin('getCourses')
   return db.courses.map((c) => ({
     ...clone(c),
     listingCount: db.listings.filter(
@@ -268,7 +343,7 @@ export async function getCourses() {
 }
 
 export async function getCourse(code) {
-  await delay()
+  await begin('getCourse')
   const courses = db.courses
   const norm = normalizeCode(code)
   const course = courses.find((c) => c.code === norm)
@@ -307,7 +382,7 @@ const closedReason = {
 }
 
 export async function makeOffer(listingId, { amountCents, message = '' } = {}) {
-  await delay()
+  await begin('makeOffer')
   const buyerId = requireUser()
   const l = readableListing(listingId)
   if (l.sellerId === buyerId)
@@ -344,6 +419,7 @@ export async function makeOffer(listingId, { amountCents, message = '' } = {}) {
     createdAt: now(),
   }
   db.offers.unshift(offer)
+  save()
   return clone(offer)
 }
 
@@ -352,7 +428,7 @@ export async function makeOffer(listingId, { amountCents, message = '' } = {}) {
  * { id, title, priceCents, courseCodes, status, sellerName } and buyer/seller { id, name }.
  */
 export async function getOffers({ direction = 'received' } = {}) {
-  await delay()
+  await begin('getOffers')
   const userId = requireUser()
   const mine = new Set(db.listings.filter((l) => l.sellerId === userId).map((l) => l.id))
   const rows = db.offers.filter((o) =>
@@ -397,7 +473,7 @@ function accept(offer, listing) {
  * counter), decline or withdraw.
  */
 export async function respondToOffer(id, action, counterCents) {
-  await delay()
+  await begin('respondToOffer')
   const userId = requireUser()
   const o = db.offers.find((x) => x.id === id)
   if (!o) throw new ApiError(404, 'Offer not found.')
@@ -438,6 +514,7 @@ export async function respondToOffer(id, action, counterCents) {
       else o.status = action === 'withdraw' ? 'withdrawn' : 'declined'
     } else throw closed()
   }
+  save()
   return clone(o)
 }
 
@@ -448,7 +525,7 @@ const cleanEmail = (email) =>
     .toLowerCase()
 
 export async function login(email, password) {
-  await delay()
+  await begin('login')
   const u = db.users.find((x) => x.email === cleanEmail(email) && x.password === password)
   if (!u) throw new ApiError(401, "That email and password don't match.")
   writeJSON(SESSION_KEY, { userId: u.id })
@@ -456,7 +533,7 @@ export async function login(email, password) {
 }
 
 export async function register({ name, email, password, yearOfStudy } = {}) {
-  await delay()
+  await begin('register')
   const cleanName = String(name ?? '').trim()
   const address = cleanEmail(email)
   const fields = {}
@@ -479,17 +556,18 @@ export async function register({ name, email, password, yearOfStudy } = {}) {
     yearOfStudy: yearOfStudy || undefined,
   }
   db.users.push(u)
+  save()
   writeJSON(SESSION_KEY, { userId: u.id })
   return selfUser(u)
 }
 
 export async function logout() {
-  await delay()
+  await begin('logout')
   removeKey(SESSION_KEY)
 }
 
 export async function getCurrentUser() {
-  await delay()
+  await begin('getCurrentUser')
   const id = currentUserId()
   const u = id && findUser(id)
   return u ? selfUser(u) : null
