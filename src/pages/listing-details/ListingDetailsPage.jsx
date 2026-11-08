@@ -393,12 +393,12 @@ export default function ListingDetailsPage() {
                 {/* Margin notes repeat facts printed elsewhere (pickup, the footnote). */}
                 <MarginNote
                   tone="pen"
-                  className="lg:static lg:ml-0 lg:w-auto lg:rotate-0 lg:border-l lg:pl-3 xl:-rotate-1 xl:border-0 xl:pl-0"
+                  className="lg:static lg:ml-0 lg:w-auto lg:max-w-full lg:rotate-0 lg:border-l lg:pl-3 xl:-rotate-1 xl:border-0 xl:pl-0"
                 >
                   Can meet at the {listing.pickupSpot.toLowerCase()}.
                 </MarginNote>
                 {under != null && (
-                  <MarginNote className="lg:static lg:ml-0 lg:w-auto lg:rotate-0 lg:border-l lg:pl-3 xl:rotate-1 xl:border-0 xl:pl-0">
+                  <MarginNote className="lg:static lg:ml-0 lg:w-auto lg:max-w-full lg:rotate-0 lg:border-l lg:pl-3 xl:rotate-1 xl:border-0 xl:pl-0">
                     {under}% under the bookstore price.
                   </MarginNote>
                 )}

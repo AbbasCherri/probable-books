@@ -8,7 +8,7 @@ export function LoadError({ onRetry }) {
     <PageShell chapter="Listing">
       <div className="mt-8 max-w-xl sm:mt-12">
         <h1 className="font-serif text-h1-sm font-semibold tracking-tight text-ink-900 sm:text-h1">
-          This page didn&apos;t print.
+          This page didn&rsquo;t print.
         </h1>
         <p role="alert" className="mt-4 text-ink-700">
           Something jammed on our end while loading this listing. Your connection is
