@@ -17,7 +17,12 @@ import { formatPrice } from '@/lib/format'
 export function getActiveFilters(filters) {
   const out = []
   if (filters.q) {
-    out.push({ key: 'q', value: filters.q, label: `Search: ${filters.q}`, removeKey: 'q' })
+    out.push({
+      key: 'q',
+      value: filters.q,
+      label: `Search: ${filters.q}`,
+      removeKey: 'q',
+    })
   }
   filters.courses?.forEach((c) =>
     out.push({ key: 'course', value: codeToSlug(c), label: c, removeKey: 'course' }),
@@ -47,7 +52,12 @@ export function getActiveFilters(filters) {
         : max === undefined
           ? `Over ${formatPrice(min)}`
           : `${formatPrice(min)} to ${formatPrice(max)}`
-    out.push({ key: 'price', value: `${min ?? ''}-${max ?? ''}`, label, removeKey: 'price' })
+    out.push({
+      key: 'price',
+      value: `${min ?? ''}-${max ?? ''}`,
+      label,
+      removeKey: 'price',
+    })
   }
   if (filters.openToOffers) {
     out.push({

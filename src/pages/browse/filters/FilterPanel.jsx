@@ -11,14 +11,23 @@ import { OffersFilter } from './OffersFilter'
  * filters comes from parseFilters; onChange(patch) for scalar keys,
  * onToggle('course' | 'category' | 'condition', value) for list keys.
  */
-export function FilterPanel({ filters = {}, courses = [], onChange, onToggle, className }) {
+export function FilterPanel({
+  filters = {},
+  courses = [],
+  onChange,
+  onToggle,
+  className,
+}) {
   return (
     <div className={cn('flex min-w-0 flex-col gap-6', className)}>
       <section aria-labelledby="filter-search-heading">
         <h3 id="filter-search-heading" className="mb-2">
           Search
         </h3>
-        <KeywordFilter value={filters.q} onChange={(q) => onChange?.({ q: q || undefined })} />
+        <KeywordFilter
+          value={filters.q}
+          onChange={(q) => onChange?.({ q: q || undefined })}
+        />
       </section>
       <CourseIndexFilter
         courses={courses}

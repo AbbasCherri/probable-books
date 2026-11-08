@@ -51,7 +51,12 @@ const PATCH = {
   },
   courses: {
     param: 'course',
-    write: (sp, v) => setList(sp, 'course', v.map((c) => codeToSlug(normalizeCode(c) ?? c))),
+    write: (sp, v) =>
+      setList(
+        sp,
+        'course',
+        v.map((c) => codeToSlug(normalizeCode(c) ?? c)),
+      ),
   },
   categories: { param: 'category', write: (sp, v) => setList(sp, 'category', v) },
   conditions: { param: 'condition', write: (sp, v) => setList(sp, 'condition', v) },
@@ -66,7 +71,9 @@ export function useBrowseParams() {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const filters = useMemo(() => parseFilters(searchParams), [searchParams])
-  const view = VIEWS.includes(searchParams.get('view')) ? searchParams.get('view') : 'cards'
+  const view = VIEWS.includes(searchParams.get('view'))
+    ? searchParams.get('view')
+    : 'cards'
 
   /**
    * Apply a filter-shaped patch (q, courses, categories, conditions, minPrice

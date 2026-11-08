@@ -8,7 +8,8 @@ const DELAY = 300
 const TICKS = Array.from({ length: 21 }, (_, i) => i)
 const INVALID = 'border-b-redpen-600 bg-redpen-50'
 
-const toText = (cents) => (cents === undefined || cents === null ? '' : String(cents / 100))
+const toText = (cents) =>
+  cents === undefined || cents === null ? '' : String(cents / 100)
 const toCents = (text) => {
   const n = Number.parseFloat(text)
   return Number.isFinite(n) && n >= 0 ? Math.round(n * 100) : undefined
