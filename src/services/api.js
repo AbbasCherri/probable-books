@@ -140,7 +140,21 @@ function requireUser() {
 const tornOut = () => new ApiError(404, 'This page was torn out.')
 const notYours = () => new ApiError(403, 'That listing is not yours.')
 
-const withSeller = (l) => ({ ...clone(l), seller: publicUser(findUser(l.sellerId)) })
+/**
+ * Listing plus its seller block (doc 5.3): name, member since, usual pickup spot and
+ * active listing count. The email (for "Contact seller") only goes to signed-in viewers.
+ */
+function withSeller(l) {
+  const u = findUser(l.sellerId)
+  const seller = u && {
+    ...publicUser(u),
+    activeListingCount: db.listings.filter(
+      (x) => x.sellerId === u.id && x.status === 'active',
+    ).length,
+  }
+  if (seller && currentUserId()) seller.email = u.email
+  return { ...clone(l), seller }
+}
 const visible = (l) => l.status !== 'draft'
 /** Drafts exist only for their owner; everyone else gets a 404. */
 function readableListing(id) {
