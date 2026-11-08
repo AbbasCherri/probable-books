@@ -21,8 +21,8 @@ export function ActiveFilters({ filters, onRemove, onClearAll, className }) {
           onClick={() => onRemove?.(filter)}
           className="hl hl-yellow inline-flex min-h-11 shrink-0 items-center gap-1.5 px-3 font-medium whitespace-nowrap text-on-mark"
         >
-          {filter.label}
-          <X size={16} strokeWidth={2} aria-hidden="true" />
+          <span className="max-w-64 truncate">{filter.label}</span>
+          <X strokeWidth={2} aria-hidden="true" className="size-4 shrink-0" />
         </button>
       ))}
       <button

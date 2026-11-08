@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { CircleAlert } from 'lucide-react'
 import { TextField } from '@/components/ui/TextField'
 import { cn } from '@/lib/cn'
@@ -45,7 +45,21 @@ export function PriceFilter({ minPrice, maxPrice, onChange, className }) {
     return () => clearTimeout(timer)
   }, [lo, hi, invalid])
 
+  const pending = useRef({ lo, hi, invalid })
+  useEffect(() => {
+    pending.current = { lo, hi, invalid }
+  })
+  const flush = useCallback(() => {
+    const { lo: l, hi: h, invalid: bad } = pending.current
+    const now = latest.current
+    if (bad || (l === now.minPrice && h === now.maxPrice)) return
+    now.onChange?.({ minPrice: l, maxPrice: h })
+  }, [])
+  // Leaving before the 300ms is up (sheet closed, rail swapped) must not lose the numbers.
+  useEffect(() => flush, [flush])
+
   const shared = {
+    onBlur: flush,
     type: 'number',
     inputMode: 'decimal',
     min: '0',

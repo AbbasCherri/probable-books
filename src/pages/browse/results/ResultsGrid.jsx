@@ -6,7 +6,9 @@ import { PAGE_SIZE } from '@/lib/constants'
 const SKELETON_COUNT = 8
 // ListingCard's title is a bare heading; keep it card-sized, not the page-section h2 size.
 const titleSize = '[&_h2]:text-body sm:[&_h2]:text-h3 [&_h2]:break-words'
-const gridClass = 'grid grid-cols-2 gap-x-3 gap-y-2 sm:gap-x-4 lg:grid-cols-3'
+// Columns come from a rem minimum width, so they drop to fewer when text is zoomed or the screen is narrow.
+const gridClass =
+  'grid grid-cols-[repeat(auto-fill,minmax(9rem,1fr))] gap-x-3 gap-y-2 sm:grid-cols-[repeat(auto-fill,minmax(12rem,1fr))] sm:gap-x-4 lg:grid-cols-[repeat(auto-fill,minmax(14rem,1fr))]'
 
 /** Listing cards in a grid (view "cards") or a plain ledger list (view "ledger"). */
 export function ResultsGrid({ items, loading, view, pageSize = PAGE_SIZE, className }) {

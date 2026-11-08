@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { TextField } from '@/components/ui/TextField'
 
 const DELAY = 300
@@ -7,6 +7,7 @@ const DELAY = 300
 export function KeywordFilter({ value, onChange, className }) {
   const [text, setText] = useState(value ?? '')
   const sent = useRef(value ?? '')
+  const textRef = useRef(text)
   const onChangeRef = useRef(onChange)
   useEffect(() => {
     onChangeRef.current = onChange
@@ -19,6 +20,17 @@ export function KeywordFilter({ value, onChange, className }) {
       setText(next)
     }
   }, [value])
+
+  const flush = useCallback(() => {
+    if (textRef.current === sent.current) return
+    sent.current = textRef.current
+    onChangeRef.current?.(textRef.current)
+  }, [])
+  useEffect(() => {
+    textRef.current = text
+  })
+  // Leaving before the 300ms is up (sheet closed, rail swapped) must not lose the text.
+  useEffect(() => flush, [flush])
 
   useEffect(() => {
     if (text === sent.current) return undefined
@@ -36,6 +48,8 @@ export function KeywordFilter({ value, onChange, className }) {
       autoComplete="off"
       value={text}
       onChange={(e) => setText(e.target.value)}
+      onBlur={flush}
+      onKeyDown={(e) => e.key === 'Enter' && flush()}
       className={className}
     />
   )
