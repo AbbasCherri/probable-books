@@ -159,7 +159,10 @@ export function ImageGallery({ listing, overlay, className }) {
           </ul>
 
           {/* sm and up: thumbnails. */}
-          <ul data-testid="gallery-thumbs" className="mt-4 hidden flex-wrap gap-3 sm:flex">
+          <ul
+            data-testid="gallery-thumbs"
+            className="mt-4 hidden flex-wrap gap-3 sm:flex"
+          >
             {photos.map((p, i) => (
               <li key={i} className="w-20">
                 <button

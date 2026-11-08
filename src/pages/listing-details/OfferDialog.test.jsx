@@ -96,7 +96,9 @@ describe('OfferDialog', () => {
     await user.paste('x'.repeat(281))
     expect(screen.getByText('281 of 280 characters')).toBeInTheDocument()
     await user.click(send)
-    expect(screen.getByText('Keep the message to 280 characters. Cut 1.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Keep the message to 280 characters. Cut 1.'),
+    ).toBeInTheDocument()
     expect(message).toHaveFocus()
     expect(onSubmit).not.toHaveBeenCalled()
   })
@@ -111,11 +113,12 @@ describe('OfferDialog', () => {
   })
 
   it('puts server field errors on their fields', async () => {
-    const onSubmit = vi
-      .fn()
-      .mockRejectedValue(
-        new ApiError(422, 'Bad', { amountCents: 'Too low for this seller.', message: 'No.' }),
-      )
+    const onSubmit = vi.fn().mockRejectedValue(
+      new ApiError(422, 'Bad', {
+        amountCents: 'Too low for this seller.',
+        message: 'No.',
+      }),
+    )
     const { user, amount, message, send } = setup(onSubmit)
     await user.type(amount, '5')
     await user.click(send)

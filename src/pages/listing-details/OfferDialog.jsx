@@ -139,7 +139,12 @@ export function OfferDialog({ open, onClose, listing, onSubmit, onSent }) {
             {failure}
           </p>
         )}
-        <Button type="submit" size="lg" aria-disabled={sending || undefined} className="w-full">
+        <Button
+          type="submit"
+          size="lg"
+          aria-disabled={sending || undefined}
+          className="w-full"
+        >
           {sending ? 'Sending offer…' : 'Send offer'}
         </Button>
       </form>
