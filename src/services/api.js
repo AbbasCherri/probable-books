@@ -3,10 +3,7 @@
 import { CONDITIONS, PAGE_SIZE, PICKUP_SPOTS } from '@/lib/constants'
 import { normalizeCode } from '@/lib/courses'
 import { readJSON, writeJSON, removeKey } from '@/lib/storage'
-import { courses as seedCourses } from './mock/courses'
-import { listings as seedListings } from './mock/listings'
-import { offers as seedOffers } from './mock/offers'
-import { users as seedUsers } from './mock/users'
+import { buildSeed } from './mock'
 
 export class ApiError extends Error {
   constructor(status, message) {
@@ -17,11 +14,8 @@ export class ApiError extends Error {
 }
 
 const SESSION_KEY = 'pb.session'
-const db = {
-  listings: structuredClone(seedListings),
-  offers: structuredClone(seedOffers),
-  users: structuredClone(seedUsers),
-}
+const db = buildSeed()
+const seedCourses = db.courses
 
 const delay = () => new Promise((r) => setTimeout(r, 250 + Math.random() * 350))
 const publicUser = ({ password: _p, ...u }) => u

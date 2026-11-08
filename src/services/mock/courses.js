@@ -132,4 +132,97 @@ export const courses = [
     tips: ['A formula sheet is provided in the exam.'],
     relatedCodes: ['MATH 201', 'CSC 201'],
   },
+  {
+    code: 'BIOL 210',
+    department: 'BIOL',
+    number: '210',
+    title: 'Genetics',
+    requiredMaterials: [
+      m('biol210-text', 'Genetics: From Genes to Genomes', 'textbook', [
+        'genetics',
+        'genomes',
+      ]),
+    ],
+    tips: ['Problem sets come from the end of each chapter.'],
+    relatedCodes: ['BIOL 201', 'STAT 230'],
+  },
+  {
+    code: 'MATH 218',
+    department: 'MATH',
+    number: '218',
+    title: 'Linear Algebra',
+    requiredMaterials: [
+      m('math218-text', 'Introduction to Linear Algebra, 5th edition', 'textbook', [
+        'linear algebra',
+        'strang',
+      ]),
+    ],
+    tips: ['The 4th edition is close enough. Section numbers match.'],
+    relatedCodes: ['MATH 201', 'CSC 201'],
+  },
+  {
+    code: 'ECON 211',
+    department: 'ECON',
+    number: '211',
+    title: 'Intermediate Microeconomics',
+    requiredMaterials: [
+      m('econ211-text', 'Intermediate Microeconomics (Varian)', 'textbook', [
+        'microeconomics',
+        'varian',
+      ]),
+      m('econ211-calc', 'Basic calculator', 'calculator', ['calculator']),
+    ],
+    tips: ['The workouts book is optional but the quizzes come from it.'],
+    relatedCodes: ['STAT 230', 'MATH 201'],
+  },
+  {
+    code: 'HIST 201',
+    department: 'HIST',
+    number: '201',
+    title: 'Modern World History',
+    requiredMaterials: [
+      m('hist201-reader', 'Course reader (print shop)', 'other', ['reader', 'history']),
+    ],
+    tips: ['The reader changes every term. Check the year on the cover.'],
+    relatedCodes: ['ENGL 203'],
+  },
+  {
+    code: 'PSYC 201',
+    department: 'PSYC',
+    number: '201',
+    title: 'Introduction to Psychology',
+    requiredMaterials: [
+      m('psyc201-text', 'Psychology (Myers), 13th edition', 'textbook', [
+        'psychology',
+        'myers',
+      ]),
+    ],
+    tips: ['Older editions are fine for reading; quizzes use the 13th.'],
+    relatedCodes: ['STAT 230', 'BIOL 201'],
+  },
+  {
+    code: 'ENGL 203',
+    department: 'ENGL',
+    number: '203',
+    title: 'Academic Writing',
+    requiredMaterials: [],
+    tips: ['No textbook. Readings are posted each week.'],
+    relatedCodes: ['HIST 201', 'PSYC 201'],
+  },
+  {
+    code: 'ARCH 221',
+    department: 'ARCH',
+    number: '221',
+    title: 'Architectural Drawing I',
+    requiredMaterials: [
+      m('arch221-scale', 'Triangular scale ruler', 'other', ['scale', 'ruler']),
+      m('arch221-kit', 'Drafting kit with compass', 'other', ['drafting', 'compass']),
+      m('arch221-text', 'Architectural Graphics (Ching)', 'textbook', [
+        'architectural graphics',
+        'ching',
+      ]),
+    ],
+    tips: ['Buy lead holders, not pencils. They last the whole degree.'],
+    relatedCodes: ['MATH 218', 'PHYS 210'],
+  },
 ]
