@@ -43,14 +43,15 @@ function unlockPage() {
 /**
  * Modal focus management, shared by Sheet and Dialog.
  *   const ref = useRef(null)
- *   useFocusTrap({ active: open, containerRef: ref, onEscape: onClose })
+ *   useFocusTrap(ref, open)                          // Dialog handles Esc itself
+ *   useFocusTrap(ref, open, { onEscape: onClose })   // Sheet lets the hook handle Esc
  *   <div ref={ref} tabIndex={-1} role="dialog">...</div>
  * While active: focus moves into the container, Tab/Shift+Tab cycle inside it,
  * Esc calls onEscape (not while a search box still has text to clear), the page behind is locked
  * and made inert. On deactivation focus returns to
  * the element that had it before (if it is still in the DOM).
  */
-export function useFocusTrap({ active, containerRef, onEscape }) {
+export function useFocusTrap(ref, active, { onEscape } = {}) {
   const escapeRef = useRef(onEscape)
 
   useEffect(() => {
@@ -58,13 +59,14 @@ export function useFocusTrap({ active, containerRef, onEscape }) {
   }, [onEscape])
 
   useEffect(() => {
-    const container = containerRef.current
+    const container = ref.current
     if (!active || !container) return undefined
 
     const previous = document.activeElement
     lockPage()
 
-    const first = focusables(container)[0]
+    // Focus starts on [data-autofocus] if there is one, else the first focusable element.
+    const first = container.querySelector('[data-autofocus]') ?? focusables(container)[0]
     if (first) first.focus()
     else container.focus()
 
@@ -110,5 +112,5 @@ export function useFocusTrap({ active, containerRef, onEscape }) {
       if (previous instanceof HTMLElement && document.body.contains(previous))
         previous.focus()
     }
-  }, [active, containerRef])
+  }, [ref, active])
 }
