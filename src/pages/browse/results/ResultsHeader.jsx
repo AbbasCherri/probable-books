@@ -8,7 +8,7 @@ const VIEWS = [
   { key: 'ledger', label: 'Ledger' },
 ]
 
-/** Title, live count, sort and view toggle for the Browse results column. */
+/** Title, live count, sort and view toggle. `actions` sits beside Sort (the phone Filters button). */
 export function ResultsHeader({
   title = 'Browse',
   total,
@@ -17,6 +17,7 @@ export function ResultsHeader({
   onSortChange,
   view,
   onViewChange,
+  actions,
   className,
 }) {
   return (
@@ -28,6 +29,7 @@ export function ResultsHeader({
         </p>
       </div>
       <div className="flex flex-wrap items-end gap-4">
+        {actions}
         <SelectField
           label="Sort"
           value={sort}
