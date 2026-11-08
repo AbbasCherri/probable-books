@@ -1,57 +1,77 @@
-import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router'
 import { RootLayout } from './RootLayout'
 import { RequireAuth } from './RequireAuth'
+import { RouteError } from './RouteError'
 
-const page = (loader) => {
-  const Page = lazy(loader)
-  return (
-    <Suspense
-      fallback={<div className="ruled mx-auto my-12 h-48 max-w-page" aria-busy="true" />}
-    >
-      <Page />
-    </Suspense>
-  )
+/**
+ * A lazily loaded page with its folio (the page number SiteFooter prints, numbered like the
+ * page specs in design doc section 5). Route-level `lazy` means the router fetches the page's
+ * code before it commits the navigation, so the current page stays on screen meanwhile.
+ */
+const page = (load, folio) => ({
+  lazy: () => load().then((m) => ({ Component: m.default })),
+  handle: { folio },
+})
+
+// First load only: the router is fetching the first page's code. Ruled paper, not a blank screen.
+function PageFallback() {
+  return <div className="ruled mx-auto my-12 h-48 max-w-page" aria-busy="true" />
 }
 
-export const router = createBrowserRouter([
+export const routes = [
   {
     element: <RootLayout />,
+    // Last resort, when the layout itself fails.
+    errorElement: <RouteError standalone />,
+    HydrateFallback: PageFallback,
     children: [
-      { path: '/', element: page(() => import('@/pages/home/HomePage')) },
-      { path: '/browse', element: page(() => import('@/pages/browse/BrowsePage')) },
       {
-        path: '/listings/:listingId',
-        element: page(() => import('@/pages/listing-details/ListingDetailsPage')),
-      },
-      {
-        path: '/courses/:courseCode',
-        element: page(() => import('@/pages/course-details/CourseDetailsPage')),
-      },
-      { path: '/login', element: page(() => import('@/pages/auth/LoginPage')) },
-      { path: '/register', element: page(() => import('@/pages/auth/RegisterPage')) },
-      {
-        path: '/styleguide',
-        element: page(() => import('@/pages/styleguide/StyleguidePage')),
-      },
-      {
-        element: <RequireAuth />,
+        // A failing page renders here, inside the header and footer.
+        errorElement: <RouteError />,
         children: [
+          { path: '/', ...page(() => import('@/pages/home/HomePage'), 1) },
+          { path: '/browse', ...page(() => import('@/pages/browse/BrowsePage'), 2) },
           {
-            path: '/sell',
-            element: page(() => import('@/pages/listing-form/ListingFormPage')),
+            path: '/listings/:listingId',
+            ...page(() => import('@/pages/listing-details/ListingDetailsPage'), 3),
           },
           {
-            path: '/listings/:listingId/edit',
-            element: page(() => import('@/pages/listing-form/ListingFormPage')),
+            path: '/courses/:courseCode',
+            ...page(() => import('@/pages/course-details/CourseDetailsPage'), 4),
           },
+          { path: '/login', ...page(() => import('@/pages/auth/LoginPage'), 7) },
+          { path: '/register', ...page(() => import('@/pages/auth/RegisterPage'), 8) },
+          // Development only: the component sheet is not part of the product.
+          ...(import.meta.env.DEV
+            ? [
+                {
+                  path: '/styleguide',
+                  ...page(() => import('@/pages/styleguide/StyleguidePage'), 10),
+                },
+              ]
+            : []),
           {
-            path: '/dashboard',
-            element: page(() => import('@/pages/dashboard/DashboardPage')),
+            element: <RequireAuth />,
+            children: [
+              {
+                path: '/sell',
+                ...page(() => import('@/pages/listing-form/ListingFormPage'), 5),
+              },
+              {
+                path: '/listings/:listingId/edit',
+                ...page(() => import('@/pages/listing-form/ListingFormPage'), 5),
+              },
+              {
+                path: '/dashboard',
+                ...page(() => import('@/pages/dashboard/DashboardPage'), 6),
+              },
+            ],
           },
+          { path: '*', ...page(() => import('@/pages/not-found/NotFoundPage'), 9) },
         ],
       },
-      { path: '*', element: page(() => import('@/pages/not-found/NotFoundPage')) },
     ],
   },
-])
+]
+
+export const router = createBrowserRouter(routes)
