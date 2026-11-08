@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="White lab coat, laid flat">
 <rect width="800" height="600" fill="#F5F2EA"/><path d="M0 520h800" stroke="#EAE5D8" stroke-width="4"/>
 <g stroke="#1A2238" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
-<path d="M340 60h120l90 40 70 260-60 20-40-150v280H280V270l-40 150-60-20 70-260z" fill="#FDFBF6"/>
+<path d="M340 60h120l90 40 70 260-60 20-40-150v280H280V230l-40 150-60-20 70-260z" fill="#FDFBF6"/>
 <path d="M340 60l60 120 60-120M400 180v320" fill="none"/>
 <path d="M300 330h60v50h-60zM440 300h50" fill="none"/>
 </g>
