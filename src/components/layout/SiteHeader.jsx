@@ -1,6 +1,7 @@
-import { useId, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router'
-import { Menu, X } from 'lucide-react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router'
+import { Menu, Search, X } from 'lucide-react'
+import { CourseLookup } from '@/components/layout/CourseLookup'
 import { Highlight } from '@/components/annotate/Highlight'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/context/AuthContext'
@@ -39,10 +40,39 @@ function NavItem({ to, label, onNavigate, className }) {
 export function SiteHeader() {
   const { user, ready, logout } = useAuth()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const [open, setOpen] = useState(false)
+  // The lookup panel is tied to the page it was opened on, so it closes on any navigation.
+  const [searchAt, setSearchAt] = useState(null)
+  const searchOpen = searchAt === pathname
   const panelId = useId()
+  const searchId = useId()
+  const searchButton = useRef(null)
+  const searchPanel = useRef(null)
   const items = navItems(user)
-  const close = () => setOpen(false)
+  const close = () => {
+    setOpen(false)
+    setSearchAt(null)
+  }
+
+  function toggleSearch() {
+    setOpen(false)
+    setSearchAt(searchOpen ? null : pathname)
+  }
+
+  useEffect(() => {
+    if (!searchOpen) return
+    function onPointerDown(e) {
+      if (
+        !searchPanel.current?.contains(e.target) &&
+        !searchButton.current?.contains(e.target)
+      ) {
+        setSearchAt(null)
+      }
+    }
+    document.addEventListener('pointerdown', onPointerDown)
+    return () => document.removeEventListener('pointerdown', onPointerDown)
+  }, [searchOpen])
 
   async function signOut() {
     close()
@@ -52,8 +82,12 @@ export function SiteHeader() {
 
   return (
     <header
-      className="border-b-3 border-double border-ink-900 bg-paper-100"
-      onKeyDown={(e) => e.key === 'Escape' && close()}
+      className="relative border-b-3 border-double border-ink-900 bg-paper-100"
+      onKeyDown={(e) => {
+        if (e.key !== 'Escape') return
+        if (searchOpen) searchButton.current?.focus()
+        close()
+      }}
     >
       <div className="mx-auto flex min-h-14 max-w-page items-center gap-8 pr-1 pl-4 sm:px-8 md:min-h-16">
         <Link
@@ -98,11 +132,26 @@ export function SiteHeader() {
         </div>
 
         <button
+          ref={searchButton}
+          type="button"
+          aria-expanded={searchOpen}
+          aria-controls={searchId}
+          onClick={toggleSearch}
+          className="ml-auto grid size-12 place-items-center rounded-paper text-ink-900 hover:bg-paper-200 md:ml-0"
+        >
+          <Search size={22} strokeWidth={1.5} aria-hidden="true" />
+          <span className="sr-only">Search courses</span>
+        </button>
+
+        <button
           type="button"
           aria-expanded={open}
           aria-controls={panelId}
-          onClick={() => setOpen((o) => !o)}
-          className="ml-auto grid size-12 place-items-center rounded-paper text-ink-900 hover:bg-paper-200 md:hidden"
+          onClick={() => {
+            setSearchAt(null)
+            setOpen((o) => !o)
+          }}
+          className="-ml-6 grid size-12 place-items-center rounded-paper text-ink-900 hover:bg-paper-200 md:hidden"
         >
           {open ? (
             <X size={22} strokeWidth={1.5} aria-hidden="true" />
@@ -112,6 +161,16 @@ export function SiteHeader() {
           <span className="sr-only">{open ? 'Close menu' : 'Menu'}</span>
         </button>
       </div>
+
+      {searchOpen && (
+        <div
+          id={searchId}
+          ref={searchPanel}
+          className="border-t border-paper-300 bg-paper-50 px-4 py-4 sm:px-8 lg:absolute lg:top-full lg:right-8 lg:z-20 lg:w-96 lg:rounded-dialog lg:border lg:border-paper-400 lg:shadow-stack"
+        >
+          <CourseLookup autoFocus onNavigate={() => setSearchAt(null)} />
+        </div>
+      )}
 
       {open && (
         <div id={panelId} className="border-t border-paper-300 px-4 pt-2 pb-5 md:hidden">
