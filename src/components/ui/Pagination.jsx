@@ -25,8 +25,11 @@ function getWindow(page, pageCount) {
  *   <Pagination page={2} pageCount={9} buildHref={(n) => `?page=${n}`} />
  * Renders nothing for a single page. Previous and Next are omitted at the ends.
  */
-export function Pagination({ page, pageCount, buildHref, className }) {
-  if (!pageCount || pageCount <= 1) return null
+export function Pagination({ page: rawPage, pageCount: rawCount, buildHref, className }) {
+  // Props from a URL can be junk: whole numbers only, and the page stays inside the range.
+  const pageCount = Math.trunc(Number(rawCount)) || 0
+  if (pageCount <= 1) return null
+  const page = Math.min(Math.max(1, Math.trunc(Number(rawPage)) || 1), pageCount)
 
   const items = getWindow(page, pageCount)
 
