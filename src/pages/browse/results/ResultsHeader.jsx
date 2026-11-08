@@ -42,7 +42,7 @@ export function ResultsHeader({
             </option>
           ))}
         </SelectField>
-        <div role="group" aria-label="View" className="flex">
+        <div role="group" aria-label="View" className="hidden lg:flex">
           {VIEWS.map(({ key, label }) => (
             <button
               key={key}
