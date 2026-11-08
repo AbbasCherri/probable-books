@@ -12,6 +12,7 @@ export default [
       'e2e-artifacts',
       'test-results',
       'playwright-report',
+      '.claude',
     ],
   },
   js.configs.recommended,
