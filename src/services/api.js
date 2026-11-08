@@ -17,10 +17,13 @@ export class ApiError extends Error {
 
 const SESSION_KEY = 'pb.session'
 // The mock database lives in memory and is saved to localStorage after every write.
-// Bump DB_VERSION whenever the seed changes shape: stored data from an older version is
-// thrown away and reseeded.
+// Bump DB_VERSION whenever the seed or the stored shape changes: stored data from an older
+// version is thrown away and reseeded. (3 added seededAt.)
 const DB_KEY = 'pb.db.v2'
-const DB_VERSION = 2
+const DB_VERSION = 3
+// Seed rows keep their hand-picked ids (lst_001, off_012); rows people create get uuids.
+const SEED_ID = /^(lst|off)_\d{3}$/
+const DAY_MS = 86400000
 // Dev controls, set in the browser console:
 //   localStorage['pb.mock.latency'] = '0'                  delay in ms (default 250 to 600)
 //   localStorage['pb.mock.fail'] = 'getListings,makeOffer'  or '*': those throw ApiError(500)
@@ -36,13 +39,38 @@ const isDb = (x) =>
   !!x &&
   typeof x === 'object' &&
   x.version === DB_VERSION &&
+  typeof x.seededAt === 'string' &&
   TABLES.every((t) => Array.isArray(x[t]))
 
 // Seed data is a dynamic import, so it (and the demo passwords) ships as its own chunk and
 // is only fetched when there is no stored database.
 async function seedDb() {
   const { buildSeed } = await import('./mock')
-  return { version: DB_VERSION, ...buildSeed() }
+  const at = Date.now()
+  return {
+    version: DB_VERSION,
+    seededAt: new Date(at).toISOString(),
+    ...buildSeed({ now: at }),
+  }
+}
+
+/**
+ * Seed dates are relative to when the data was seeded, so stored data ages ("posted today"
+ * turns into last week). Once it is a day old, move seed rows forward by the time elapsed.
+ * Rows people created keep their real dates. Returns true when anything changed.
+ */
+function refreshSeedDates() {
+  const elapsed = Date.now() - Date.parse(db.seededAt)
+  if (!(elapsed > DAY_MS)) return false
+  const shift = (iso) =>
+    new Date(Math.min(Date.parse(iso) + elapsed, Date.now())).toISOString()
+  for (const row of [...db.listings, ...db.offers]) {
+    if (!SEED_ID.test(row.id)) continue
+    if (row.createdAt) row.createdAt = shift(row.createdAt)
+    if (row.updatedAt) row.updatedAt = shift(row.updatedAt)
+  }
+  db.seededAt = new Date().toISOString()
+  return true
 }
 
 function save() {
@@ -53,8 +81,10 @@ function save() {
 function ensureDb() {
   ready ??= (async () => {
     const stored = readJSON(DB_KEY)
-    if (isDb(stored)) db = stored
-    else {
+    if (isDb(stored)) {
+      db = stored
+      if (refreshSeedDates()) save()
+    } else {
       db = await seedDb()
       save()
     }
