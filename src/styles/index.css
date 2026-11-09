@@ -118,6 +118,15 @@
   --text-display: 3.5rem;
   --text-display--line-height: 1.05;
 
+  /* Stacking order, lowest first: z-popover (menus, listboxes, popovers), z-sticky (sticky
+     bottom bars), z-header (the site header and its panels), z-modal (dialogs, sheets and their
+     scrim), z-toast (toasts, above a modal so they are seen). Use these, not numbers. */
+  --z-index-popover: 10;
+  --z-index-sticky: 20;
+  --z-index-header: 30;
+  --z-index-modal: 40;
+  --z-index-toast: 50;
+
   /* Motion only in answer to an action (section 3). Use with motion-safe:. */
   --animate-*: initial;
   --animate-hl-draw: hl-draw 300ms ease-out;
