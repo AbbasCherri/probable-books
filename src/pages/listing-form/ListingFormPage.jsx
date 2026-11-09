@@ -156,6 +156,9 @@ function ListingForm({
   const [previewOpen, setPreviewOpen] = useState(false)
   const summaryRef = useRef(null)
   const leaving = useRef(false) // set just before we navigate away on purpose
+  const formRef = useRef(null)
+  const photosRef = useRef(form.photos)
+  const savedRef = useRef(false) // a saved listing keeps using its photos' object URLs
 
   const errors = useMemo(() => validateListing(form), [form])
   const summary = attempts > 0 ? errorList(errors) : []
@@ -185,6 +188,18 @@ function ListingForm({
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
   }, [dirty])
 
+  // Free new photos' object URLs when the form goes away without saving them.
+  useEffect(() => {
+    photosRef.current = form.photos
+  }, [form.photos])
+  useEffect(
+    () => () => {
+      if (savedRef.current) return
+      for (const p of photosRef.current) if (p.file) URL.revokeObjectURL(p.url)
+    },
+    [],
+  )
+
   // After a failed submit, focus the error summary so the count is read out.
   useEffect(() => {
     if (attempts > 0) summaryRef.current?.focus()
@@ -213,6 +228,7 @@ function ListingForm({
         ? await api.updateListing(listingId, data)
         : await api.createListing(data)
       if (!isEdit) clearDraft()
+      savedRef.current = true
       leaving.current = true
       toast(
         isEdit
@@ -292,6 +308,7 @@ function ListingForm({
       )}
 
       <form
+        ref={formRef}
         id={FORM_ID}
         noValidate
         onSubmit={handleSubmit}
@@ -318,6 +335,7 @@ function ListingForm({
                 className="col-span-5 sm:col-span-6"
                 id="listing-author"
                 label="Author"
+                optional
                 value={form.author}
                 autoComplete="off"
                 onChange={(e) => update('author', e.target.value)}
@@ -326,6 +344,7 @@ function ListingForm({
                 className="col-span-2"
                 id="listing-edition"
                 label="Edition"
+                optional
                 placeholder="4th"
                 value={form.edition}
                 autoComplete="off"
@@ -334,7 +353,8 @@ function ListingForm({
               <TextField
                 className="col-span-3 sm:col-span-4"
                 id="listing-isbn"
-                label="ISBN, optional"
+                label="ISBN"
+                optional
                 placeholder="10 or 13 digits"
                 inputMode="numeric"
                 autoComplete="off"
@@ -350,6 +370,7 @@ function ListingForm({
               <TextField
                 id="listing-brand"
                 label="Brand"
+                optional
                 placeholder={
                   form.category === 'calculator'
                     ? 'e.g. Texas Instruments'
@@ -362,6 +383,7 @@ function ListingForm({
               <TextField
                 id="listing-model"
                 label={form.category === 'calculator' ? 'Model' : 'Size or model'}
+                optional
                 placeholder={
                   form.category === 'calculator' ? 'e.g. TI-84 Plus CE' : 'e.g. Size M'
                 }
@@ -439,7 +461,8 @@ function ListingForm({
             />
             <TextField
               id="listing-retail"
-              label="Retail price, $ (optional)"
+              label="Retail price, $"
+              optional
               hint="New, at the bookstore. Shows buyers what they save."
               inputMode="decimal"
               autoComplete="off"
@@ -577,13 +600,15 @@ function ListingForm({
         <div className="mx-auto flex w-full max-w-xs flex-col gap-4 py-3">
           <ListingPreview listing={preview} hint={priceHint} />
         </div>
+        {/* Submit first, then close: a submit button that unmounts on click never submits. */}
         <Button
-          type="submit"
-          form={FORM_ID}
           size="lg"
           className="mt-2 w-full"
           disabled={saving}
-          onClick={() => setPreviewOpen(false)}
+          onClick={() => {
+            formRef.current?.requestSubmit()
+            setPreviewOpen(false)
+          }}
         >
           {primaryLabel}
         </Button>
