@@ -35,8 +35,9 @@ export function RowActionsMenu({ listing, onSetStatus, onDelete, disabled }) {
     if (refocus) buttonRef.current?.focus()
   }
 
+  // Focus goes back to the menu button before the action runs, so it is never lost with the menu.
   function choose(action) {
-    close({ refocus: false })
+    close()
     action()
   }
 
@@ -72,10 +73,13 @@ export function RowActionsMenu({ listing, onSetStatus, onDelete, disabled }) {
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        disabled={disabled}
-        onClick={() => setOpen((o) => !o)}
+        // aria-disabled, not disabled, while busy: a disabled button would drop keyboard focus.
+        aria-disabled={disabled || undefined}
+        onClick={() => {
+          if (!disabled) setOpen((o) => !o)
+        }}
         className={cn(
-          'grid size-11 place-items-center rounded-paper text-ink-900 transition-paper hover:bg-paper-200 disabled:text-ink-300',
+          'grid size-11 place-items-center rounded-paper text-ink-900 transition-paper hover:bg-paper-200 aria-disabled:cursor-default aria-disabled:text-ink-300 aria-disabled:hover:bg-transparent',
           open && 'bg-paper-200',
         )}
       >
