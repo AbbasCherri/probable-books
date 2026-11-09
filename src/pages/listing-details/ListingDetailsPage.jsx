@@ -28,6 +28,7 @@ import { MarkSoldDialog } from './MarkSoldDialog'
 import { OfferDialog } from './OfferDialog'
 import { RelatedShelf } from './RelatedShelf'
 import { SellerBlock } from './SellerBlock'
+import { endSentence } from './sentence'
 import { TornOut } from './TornOut'
 import { useFitsViewport } from './useFitsViewport'
 import './listingDetails.css'
@@ -188,7 +189,7 @@ export default function ListingDetailsPage() {
     })
     setFocusTo('offer')
     toast(
-      `Offer of ${formatPrice(amountCents)} sent to ${seller?.name ?? 'the seller'}. Track it in your dashboard.`,
+      `Offer of ${formatPrice(amountCents)} sent to ${endSentence(seller?.name ?? 'the seller')} Track it in your dashboard.`,
     )
   }
 

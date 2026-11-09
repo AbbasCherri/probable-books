@@ -4,6 +4,7 @@ import { Dialog } from '@/components/ui/Dialog'
 import { TextArea } from '@/components/ui/TextArea'
 import { TextField } from '@/components/ui/TextField'
 import { formatPrice } from '@/lib/format'
+import { endSentence } from './sentence'
 import { MAX_OFFER_MESSAGE, parseOfferAmount, validateOffer } from './validateOffer'
 
 const EMPTY = { amount: '', message: '' }
@@ -94,9 +95,11 @@ export function OfferDialog({ open, onClose, listing, onSubmit, onSent }) {
   return (
     <Dialog open={open} onClose={close} title="Make an offer">
       <p className="text-small text-ink-700">
-        Asking {formatPrice(listing.priceCents)}
-        {listing.seller?.name ? ` from ${listing.seller.name}` : ''}. The seller sees your
-        offer in their dashboard and can accept, counter or decline it.
+        {endSentence(
+          `Asking ${formatPrice(listing.priceCents)}${listing.seller?.name ? ` from ${listing.seller.name}` : ''}`,
+        )}{' '}
+        The seller sees your offer in their dashboard and can accept, counter or decline
+        it.
       </p>
       <form noValidate onSubmit={submit} className="mt-5 flex flex-col gap-5 pb-1">
         <TextField
@@ -107,7 +110,6 @@ export function OfferDialog({ open, onClose, listing, onSubmit, onSent }) {
           enterKeyHint="send"
           data-autofocus
           value={values.amount}
-          placeholder={String(Math.floor(listing.priceCents / 100) || '')}
           onChange={(e) => change('amount', e.target.value)}
           error={errors.amount}
           inputClassName="min-h-14 font-serif text-h2 lining-nums tabular-nums"
