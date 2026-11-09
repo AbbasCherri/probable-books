@@ -101,7 +101,7 @@ export function OfferNote({
 
       {pending && !countering && (
         <div className="mt-1 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
-          {/* Once the listing is reserved (another offer accepted) only Decline makes sense. */}
+          {/* Once the listing is reserved (another offer accepted) only Decline makes sense (a countered offer could not be accepted either). */}
           {canAccept && (
             <Button
               onClick={() => onAccept(offer)}
@@ -112,15 +112,17 @@ export function OfferNote({
               Accept
             </Button>
           )}
-          <Button
-            variant="outline"
-            onClick={startCounter}
-            disabled={busy}
-            size="lg"
-            className="w-full sm:w-auto"
-          >
-            Counter
-          </Button>
+          {canAccept && (
+            <Button
+              variant="outline"
+              onClick={startCounter}
+              disabled={busy}
+              size="lg"
+              className="w-full sm:w-auto"
+            >
+              Counter
+            </Button>
+          )}
           {/* Decline sits apart (a rule on phones, pushed right on wider screens) to avoid mis-taps. */}
           <div className="mt-1.5 border-t border-paper-300 pt-1.5 sm:mt-0 sm:ml-auto sm:border-0 sm:pt-0">
             <Button

@@ -18,15 +18,6 @@ function offerInfo(listing, received) {
 }
 
 /** Stamp has no draft status (it would read Pending), so drafts get a plain label here. */
-function StatusStamp({ status }) {
-  if (status !== 'draft') return <Stamp status={status} />
-  return (
-    <span className="inline-block shrink-0 rounded-paper border border-dashed border-ink-500 px-2 font-condensed text-small font-semibold whitespace-nowrap text-ink-700">
-      Draft
-    </span>
-  )
-}
-
 function OffersCell({ info, onShowOffers }) {
   if (info.pending > 0) {
     return (
@@ -180,7 +171,7 @@ export function ListingsTab({
                     {formatPrice(l.priceCents)}
                   </td>
                   <td className="px-3 py-2.5">
-                    <StatusStamp status={l.status} />
+                    <Stamp status={l.status} />
                   </td>
                   <td className="px-3 py-2.5 whitespace-nowrap">
                     <OffersCell
@@ -228,7 +219,7 @@ export function ListingsTab({
                   <span className="font-serif text-lead font-semibold tabular-nums">
                     {formatPrice(l.priceCents)}
                   </span>
-                  <StatusStamp status={l.status} />
+                  <Stamp status={l.status} />
                   {info.pending > 0 ? (
                     <button
                       type="button"
