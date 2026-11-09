@@ -3,7 +3,9 @@ import { CourseLookup } from '@/components/layout/CourseLookup'
 import { cn } from '@/lib/cn'
 
 // Two fixed columns on phones so the row count never depends on when the condensed font loads.
-const tabRow = 'grid grid-cols-2 gap-3 sm:flex sm:flex-wrap'
+// Two fixed columns on phones (no reflow when the condensed font lands); one column when the
+// tabs don't fit two across, e.g. at 200% text size. The container query measures in rem.
+const tabRow = 'grid grid-cols-1 gap-3 @3xs:grid-cols-2 sm:flex sm:flex-wrap'
 
 export function TitlePage({ courses, loading, contents }) {
   const popular = (courses ?? [])
@@ -25,7 +27,7 @@ export function TitlePage({ courses, loading, contents }) {
           Textbooks, calculators and lab gear from students one year ahead of you.
         </p>
         <CourseLookup courses={courses} className="mt-6 max-w-prose" />
-        <div className="mt-8">
+        <div className="@container mt-8">
           <h2 className="font-serif text-h3 font-semibold text-ink-900">
             Popular this term
           </h2>
