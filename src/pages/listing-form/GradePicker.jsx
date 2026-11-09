@@ -16,7 +16,7 @@ export function GradePicker({ value, onChange, error }) {
       className="min-w-0"
       aria-describedby={error ? errorId : 'listing-condition-desc'}
     >
-      <legend className="mb-2 font-semibold">Grade</legend>
+      <legend className="mb-2">Grade</legend>
       <FieldError id={errorId}>{error}</FieldError>
       <div
         className={cn(

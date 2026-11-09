@@ -135,7 +135,7 @@ export function CourseCombobox({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="font-semibold">
+      <label htmlFor={id}>
         Which courses use it
       </label>
       <div className="relative">

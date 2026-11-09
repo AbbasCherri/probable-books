@@ -13,7 +13,7 @@ const ICONS = {
 export function CategoryPicker({ value, onChange }) {
   return (
     <fieldset className="min-w-0">
-      <legend className="mb-2 font-semibold">Category</legend>
+      <legend className="mb-2">Category</legend>
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4 sm:gap-3">
         {Object.entries(CATEGORIES).map(([key, category]) => {
           const c = { value: key, ...category }

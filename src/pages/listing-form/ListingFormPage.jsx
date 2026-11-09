@@ -457,7 +457,7 @@ function ListingForm({
               className="mt-1 size-5 shrink-0 accent-ink-900"
             />
             <span>
-              <span className="block font-semibold">Open to offers</span>
+              <span className="block">Open to offers</span>
               <span className="block text-small text-ink-500">
                 Buyers can offer less. You accept, counter or decline.
               </span>

@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn'
 export function Field({ id, label, hint, error, optional, className, children }) {
   return (
     <div className={cn('flex min-w-0 flex-col gap-1.5', className)}>
-      <label htmlFor={id} className="font-semibold text-ink-900">
+      <label htmlFor={id} className="text-ink-900">
         {label}
         {optional && <span className="font-normal text-ink-500"> optional</span>}
       </label>

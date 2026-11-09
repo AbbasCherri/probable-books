@@ -22,7 +22,7 @@ export function ConditionNotes({ notes, onChange, error }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <p id="listing-notes-label" className="font-semibold">
+      <p id="listing-notes-label">
         Condition notes <span className="font-normal text-ink-500">optional</span>
       </p>
       <p id="listing-notes-hint" className="text-small text-ink-500">
