@@ -29,6 +29,7 @@ beforeEach(() => {
 })
 
 afterEach(() => {
+  vi.restoreAllMocks()
   html.removeAttribute('data-theme')
   delete window.matchMedia
 })
@@ -92,6 +93,28 @@ describe('useTheme', () => {
     })
     expect(result.current[0]).toBe('system')
     expect(html).not.toHaveAttribute('data-theme')
+  })
+
+  it('still applies and reports a choice when storage refuses to save it', () => {
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('Blocked', 'SecurityError')
+    })
+    const footer = renderHook(() => useTheme())
+    act(() => footer.result.current[1]('night'))
+    expect(footer.result.current[0]).toBe('night')
+    expect(html).toHaveAttribute('data-theme', 'night')
+    // A control mounted later reads the same choice.
+    const menu = renderHook(() => useTheme())
+    expect(menu.result.current[0]).toBe('night')
+  })
+
+  it('falls back to the attribute set before first paint when storage cannot be read', () => {
+    html.setAttribute('data-theme', 'day')
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+      throw new DOMException('Blocked', 'SecurityError')
+    })
+    const { result } = renderHook(() => useTheme())
+    expect(result.current[0]).toBe('day')
   })
 
   it('resolves system to the OS setting and follows it', () => {

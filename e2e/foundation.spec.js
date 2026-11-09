@@ -75,3 +75,93 @@ test('no element uses a default Tailwind text size', async ({ page, context }) =
   }
   expect(offenders).toEqual([])
 })
+
+for (const { os, saved, bg, scheme } of [
+  { os: 'dark', saved: 'day', bg: 'rgb(245, 242, 234)', scheme: 'light' },
+  { os: 'light', saved: 'night', bg: 'rgb(23, 29, 48)', scheme: 'dark' },
+]) {
+  test(`a saved ${saved} theme overrides an OS set to ${os}`, async ({ browser }) => {
+    const context = await browser.newContext({ colorScheme: os })
+    const page = await context.newPage()
+    await setTheme(page, saved)
+    await gotoStable(page, '/login')
+    const styles = await page.evaluate(() => ({
+      bg: getComputedStyle(document.body).backgroundColor,
+      input: getComputedStyle(document.querySelector('input')).colorScheme,
+    }))
+    expect(styles.bg).toBe(bg)
+    expect(styles.input).toBe(scheme)
+    await context.close()
+  })
+}
+
+test('switching dashboard tabs does not move focus', async ({ page, context }) => {
+  await signIn(context)
+  await gotoStable(page, '/dashboard')
+  const tab = page.getByRole('tab', { name: /Offers received/ })
+  await tab.click()
+  await expect(page).toHaveURL(/tab=received/)
+  await waitForStable(page)
+  await expect(tab).toBeFocused()
+})
+
+test('labels are body weight; listing titles are semibold', async ({ page, context }) => {
+  await signIn(context)
+  await gotoStable(page, '/sell')
+  const weight = (locator) => locator.evaluate((el) => getComputedStyle(el).fontWeight)
+  expect(await weight(page.locator('label[for="listing-title"]'))).toBe('400')
+  expect(await weight(page.locator('label[for="listing-courses"]'))).toBe('400')
+  expect(await weight(page.locator('legend', { hasText: 'Category' }))).toBe('400')
+  expect(await weight(page.getByText('Open to offers', { exact: true }))).toBe('400')
+  await gotoStable(page, '/browse')
+  expect(await weight(page.locator('article h2').first())).toBe('600')
+})
+
+/** Standard deviation of luminance in a patch of empty page: paper grain makes it > 0. */
+async function grainStrength(page) {
+  const png = await page.screenshot({ clip: { x: 10, y: 300, width: 200, height: 120 } })
+  return page.evaluate(
+    async (src) => {
+      const img = new Image()
+      img.src = src
+      await img.decode()
+      const canvas = document.createElement('canvas')
+      canvas.width = img.width
+      canvas.height = img.height
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, 0, 0)
+      const { data } = ctx.getImageData(0, 0, img.width, img.height)
+      const lum = []
+      for (let i = 0; i < data.length; i += 4)
+        lum.push(0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2])
+      const mean = lum.reduce((a, b) => a + b, 0) / lum.length
+      return Math.sqrt(lum.reduce((a, b) => a + (b - mean) ** 2, 0) / lum.length)
+    },
+    `data:image/png;base64,${png.toString('base64')}`,
+  )
+}
+
+test('paper grain shows, fainter at night, and never blocks clicks', async ({
+  browser,
+}) => {
+  const strengths = {}
+  for (const theme of ['day', 'night']) {
+    const context = await browser.newContext()
+    const page = await context.newPage()
+    await setTheme(page, theme)
+    await gotoStable(page, '/missing')
+    strengths[theme] = await grainStrength(page)
+    // The grain layer sits under the content: the point at the footer link hits the link.
+    const link = page.getByRole('contentinfo').getByRole('link', { name: 'Browse' })
+    const box = await link.boundingBox()
+    const hit = await page.evaluate(
+      ([x, y]) => document.elementFromPoint(x, y)?.closest('a')?.textContent,
+      [box.x + box.width / 2, box.y + box.height / 2],
+    )
+    expect(hit).toBe('Browse')
+    await context.close()
+  }
+  expect(strengths.day).toBeGreaterThan(0.5)
+  expect(strengths.night).toBeGreaterThan(0.2)
+  expect(strengths.night).toBeLessThan(strengths.day)
+})

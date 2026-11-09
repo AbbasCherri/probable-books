@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { act, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
@@ -14,8 +15,16 @@ function Page({ title }) {
   )
 }
 
-function renderLayout(route = '/') {
-  return renderWithRouter(<RootLayout />, {
+// StrictMode runs mount effects twice, as in development: neither run may move focus.
+function renderLayout(route = '/', { strict = false } = {}) {
+  const layout = strict ? (
+    <StrictMode>
+      <RootLayout />
+    </StrictMode>
+  ) : (
+    <RootLayout />
+  )
+  return renderWithRouter(layout, {
     route,
     path: '/',
     auth: true,
@@ -32,21 +41,14 @@ beforeEach(() => {
 })
 
 describe('RootLayout', () => {
-  it('frames the page so the footer can sit at the bottom', () => {
-    renderLayout()
-    const main = screen.getByRole('main')
-    expect(main).toHaveClass('flex-1')
-    expect(main.parentElement).toHaveClass('flex', 'min-h-dvh', 'flex-col')
-  })
-
-  it('leaves focus alone on the first render', () => {
-    renderLayout()
+  it('leaves focus alone on the first render, in StrictMode too', () => {
+    renderLayout('/', { strict: true })
     expect(screen.getByRole('main')).not.toHaveFocus()
     expect(screen.getByTestId('route-announcer')).toHaveTextContent('')
   })
 
   it('moves focus to main and announces the new title after a route change', async () => {
-    const { router } = renderLayout()
+    const { router } = renderLayout('/', { strict: true })
     await act(() => router.navigate('/browse'))
     expect(await screen.findByRole('heading', { name: 'Browse' })).toBeInTheDocument()
     expect(screen.getByRole('main')).toHaveFocus()

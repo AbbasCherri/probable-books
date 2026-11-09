@@ -11,6 +11,9 @@ vi.mock('@/pages/not-found/NotFoundPage', () => ({
   },
 }))
 
+// A page whose code never finishes loading, to see what shows while a route's lazy is pending.
+vi.mock('@/pages/home/HomePage', () => new Promise(() => {}))
+
 function renderApp(path) {
   const router = createMemoryRouter(routes, { initialEntries: [path] })
   render(
@@ -47,6 +50,14 @@ describe('router', () => {
     // Still inside the layout: header and footer render around it.
     expect(screen.getByRole('banner')).toBeInTheDocument()
     expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+  })
+
+  it('keeps the header and footer up while the first page is still loading', async () => {
+    renderApp('/')
+    expect(await screen.findByRole('banner')).toBeInTheDocument()
+    expect(screen.getByRole('contentinfo')).toBeInTheDocument()
+    const main = screen.getByRole('main')
+    expect(main.querySelector('[aria-busy="true"]')).toBeInTheDocument()
   })
 
   it('lazy-loads a page and prints its folio in the footer', async () => {
