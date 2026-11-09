@@ -28,7 +28,8 @@ export function ReadingLight({ className }) {
       <span id={labelId} className="text-small text-ink-700">
         Reading light
       </span>
-      <span className="inline-flex rounded-paper border border-paper-400 bg-paper-50">
+      {/* Wraps instead of overflowing when text is enlarged (200% at 320px). */}
+      <span className="inline-flex max-w-full flex-wrap rounded-paper border border-paper-400 bg-paper-50">
         {OPTIONS.map((o) => (
           <label
             key={o.value}

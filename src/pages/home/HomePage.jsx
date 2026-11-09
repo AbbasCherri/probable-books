@@ -41,7 +41,8 @@ export default function HomePage() {
     )
   }
 
-  const showFeatured = !featured.loading && (featured.data?.length ?? 0) > 0
+  // Hold Featured's place while it loads; drop it only once it has loaded empty.
+  const showFeatured = featured.loading || (featured.data?.length ?? 0) > 0
   const contents = [
     showFeatured && { id: 'featured', title: 'Featured' },
     { id: 'fresh', title: 'Fresh this week' },
@@ -53,9 +54,11 @@ export default function HomePage() {
     <PageShell chapter="Contents">
       <div className="space-y-16 py-8 lg:space-y-24">
         <TitlePage courses={courses.data} loading={courses.loading} contents={contents} />
-        {showFeatured && <FeaturedSpread listings={featured.data} />}
+        {showFeatured && (
+          <FeaturedSpread listings={featured.data} loading={featured.loading} />
+        )}
         <FreshShelf listings={fresh.data ?? []} loading={fresh.loading} />
-        {courses.data && <CourseIndex courses={courses.data} />}
+        <CourseIndex courses={courses.data ?? []} loading={courses.loading} />
         <HowSellingWorks />
       </div>
     </PageShell>

@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { SectionHeading } from '@/components/layout/SectionHeading'
 import { ListingCard } from '@/components/listing/ListingCard'
+import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { ListingCardSkeleton } from '@/components/listing/ListingCardSkeleton'
 
@@ -32,8 +33,15 @@ export function FreshShelf({ listings, loading }) {
         </div>
       ) : listings.length === 0 ? (
         <EmptyState
+          as="h3"
           title="Nothing new yet"
           note="Listings show up here the day they go live."
+          className="mt-6"
+          action={
+            <Button as={Link} to="/sell" variant="outline">
+              Sell something
+            </Button>
+          }
         />
       ) : (
         <>
