@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" role="img" aria-label="Green textbook cover">
+<rect width="800" height="600" fill="#F5F2EA"/><path d="M0 520h800" stroke="#EAE5D8" stroke-width="4"/>
+<rect x="274" y="72" width="280" height="440" rx="6" fill="#D8D1BF"/>
+<rect x="260" y="58" width="280" height="440" rx="6" fill="#A9C496"/>
+<rect x="260" y="58" width="26" height="440" rx="6" fill="#92AF7F"/>
+<rect x="286" y="138" width="254" height="100" fill="#1A2238"/>
+<rect x="312" y="166" width="176" height="16" rx="4" fill="#F5F2EA"/>
+<rect x="312" y="196" width="118" height="10" rx="3" fill="#F5F2EA" opacity=".7"/>
+<g fill="none" stroke="#1A2238" stroke-width="6" stroke-linejoin="round" stroke-linecap="round"><ellipse cx="413" cy="355" rx="78" ry="56"/><circle cx="430" cy="350" r="18"/><path d="M370 335h14M380 380h12"/></g>
+<rect x="312" y="452" width="96" height="10" rx="3" fill="#1A2238"/>
+</svg>

@@ -11,9 +11,16 @@ export function formatPrice(cents) {
   return cents % 100 === 0 ? usdWhole.format(cents / 100) : usd.format(cents / 100)
 }
 
+/** "45", "$45.50", "1,200" -> integer cents. Empty or not a number -> null. */
 export function parsePriceToCents(text) {
-  const n = Number.parseFloat(String(text).replace(/[^0-9.]/g, ''))
+  const n = Number.parseFloat(String(text ?? '').replace(/[^0-9.]/g, ''))
   return Number.isFinite(n) ? Math.round(n * 100) : null
+}
+
+/** 4500 -> "45", 4550 -> "45.50", null -> "". For prefilling price inputs. */
+export function centsToInput(cents) {
+  if (cents == null) return ''
+  return cents % 100 === 0 ? String(cents / 100) : (cents / 100).toFixed(2)
 }
 
 export function percentUnderRetail(cents, retailCents) {
