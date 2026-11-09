@@ -8,23 +8,13 @@ import { useAsync } from '@/hooks/useAsync'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { cn } from '@/lib/cn'
 import { SORTS } from '@/lib/constants'
-import { normalizeCode, tabColorFor } from '@/lib/courses'
+import { normalizeCode, tabClassFor } from '@/lib/courses'
 import { formatPrice, plural } from '@/lib/format'
 import * as api from '@/services/api'
 import { CourseListings } from './CourseListings'
 import { RequiredMaterials } from './RequiredMaterials'
 
 const GRID_SIZE = 12
-
-// Full class names so Tailwind finds them. Same department, same colour as its CourseTab.
-const BAND_CLASSES = {
-  sage: 'bg-tab-sage',
-  sky: 'bg-tab-sky',
-  butter: 'bg-tab-butter',
-  rose: 'bg-tab-rose',
-  lilac: 'bg-tab-lilac',
-  sand: 'bg-tab-sand',
-}
 
 function statsLine({ listingCount, minCents, medianCents }) {
   if (!listingCount) return 'No listings yet'
@@ -42,7 +32,7 @@ function NotInIndex({ code, closest }) {
         <ul className="mt-4 flex flex-wrap gap-3">
           {closest.map((c) => (
             <li key={c}>
-              <CourseTab code={c} asLink className="h-11 px-3 text-body" />
+              <CourseTab code={c} asLink size="lg" />
             </li>
           ))}
         </ul>
@@ -119,7 +109,8 @@ export default function CourseDetailsPage() {
         <div
           className={cn(
             'rounded-paper border border-paper-400 px-5 pt-5 pb-6 sm:px-8',
-            BAND_CLASSES[tabColorFor(c.code)],
+            // Same department, same colour as its CourseTab.
+            tabClassFor(c.code),
           )}
         >
           <h1 className="font-serif font-semibold text-on-mark">
@@ -160,7 +151,7 @@ export default function CourseDetailsPage() {
             <ul className="mt-5 flex flex-wrap gap-3">
               {c.relatedCodes.map((r) => (
                 <li key={r}>
-                  <CourseTab code={r} asLink className="h-11 px-3 text-body" />
+                  <CourseTab code={r} asLink size="lg" />
                 </li>
               ))}
             </ul>

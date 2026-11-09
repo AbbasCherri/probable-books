@@ -1,5 +1,5 @@
-import { CircleAlert } from 'lucide-react'
 import { cn } from '@/lib/cn'
+import { FieldError } from './FieldError'
 
 /** Label, hint and error around one control. TextField, TextArea and SelectField use it. */
 export function Field({ id, label, hint, error, optional, className, children }) {
@@ -15,19 +15,7 @@ export function Field({ id, label, hint, error, optional, className, children })
           {hint}
         </p>
       )}
-      {error && (
-        <p
-          id={`${id}-error`}
-          className="flex items-start gap-1.5 text-small text-redpen-600"
-        >
-          <CircleAlert
-            strokeWidth={1.5}
-            aria-hidden="true"
-            className="mt-0.5 size-4.5 shrink-0"
-          />
-          <span>{error}</span>
-        </p>
-      )}
+      <FieldError id={`${id}-error`}>{error}</FieldError>
     </div>
   )
 }

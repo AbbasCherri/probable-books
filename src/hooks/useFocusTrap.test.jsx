@@ -2,7 +2,10 @@ import { useRef, useState } from 'react'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { Dialog } from '@/components/ui/Dialog'
 import { Sheet } from '@/components/ui/Sheet'
+import { ToastProvider } from '@/components/ui/Toast'
+import { useToast } from '@/hooks/useToast'
 import { useFocusTrap } from './useFocusTrap'
 
 // jsdom does no layout, so every element reports zero client rects and the hook would treat
@@ -162,5 +165,90 @@ describe('Sheet', () => {
     expect(onClose).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     expect(trigger).toHaveFocus()
+  })
+})
+
+describe('nested modals and toasts', () => {
+  let root
+  beforeEach(() => {
+    root = document.createElement('div')
+    root.id = 'root'
+    document.body.appendChild(root)
+  })
+  afterEach(() => {
+    root.remove()
+    document.body.style.overflow = ''
+  })
+
+  function Nested() {
+    const toast = useToast()
+    const [sheet, setSheet] = useState(false)
+    const [dialog, setDialog] = useState(false)
+    return (
+      <>
+        <button type="button" onClick={() => setSheet(true)}>
+          Preview
+        </button>
+        <Sheet open={sheet} onClose={() => setSheet(false)} title="Preview">
+          <button type="button" onClick={() => setDialog(true)}>
+            Delete
+          </button>
+        </Sheet>
+        <Dialog open={dialog} onClose={() => setDialog(false)} title="Delete it?">
+          <button
+            type="button"
+            onClick={() => {
+              toast('Listing deleted.')
+              setDialog(false)
+            }}
+          >
+            Delete for good
+          </button>
+        </Dialog>
+      </>
+    )
+  }
+
+  it('Esc closes only the top modal; the page unlocks when the last one closes', async () => {
+    const user = userEvent.setup()
+    render(
+      <ToastProvider>
+        <Nested />
+      </ToastProvider>,
+      { container: root },
+    )
+    await user.click(screen.getByRole('button', { name: 'Preview' }))
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    expect(screen.getAllByRole('dialog')).toHaveLength(2)
+    await user.keyboard('{Escape}')
+    expect(screen.getByRole('dialog', { name: 'Preview' })).toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Delete it?' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus()
+    expect(document.body.style.overflow).toBe('hidden')
+    expect(root).toHaveAttribute('inert')
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(document.body.style.overflow).toBe('')
+    expect(root).not.toHaveAttribute('inert')
+    expect(screen.getByRole('button', { name: 'Preview' })).toHaveFocus()
+  })
+
+  it('a toast shown from inside a modal is outside the inert page', async () => {
+    const user = userEvent.setup()
+    render(
+      <ToastProvider>
+        <Nested />
+      </ToastProvider>,
+      { container: root },
+    )
+    await user.click(screen.getByRole('button', { name: 'Preview' }))
+    await user.click(screen.getByRole('button', { name: 'Delete' }))
+    await user.click(screen.getByRole('button', { name: 'Delete for good' }))
+    // The sheet is still open, so #root is inert; the note must not be inside it.
+    expect(root).toHaveAttribute('inert')
+    const note = screen.getByText('Listing deleted.')
+    expect(note.closest('[inert]')).toBeNull()
+    // Focus went back into the sheet, not into the toast.
+    expect(screen.getByRole('button', { name: 'Delete' })).toHaveFocus()
   })
 })

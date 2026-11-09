@@ -2,9 +2,11 @@ import { useEffect, useId, useRef, useState } from 'react'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router'
 import { Menu, Search, X } from 'lucide-react'
 import { CourseLookup } from '@/components/layout/CourseLookup'
+import { ReadingLight } from '@/components/layout/ReadingLight'
 import { Highlight } from '@/components/annotate/Highlight'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/context/AuthContext'
+import { useCourses } from '@/context/CoursesContext'
 import { cn } from '@/lib/cn'
 
 function navItems(user) {
@@ -20,7 +22,10 @@ function NavItem({ to, label, onNavigate, className }) {
     <NavLink
       to={to}
       onClick={onNavigate}
-      className={cn('flex min-h-11 items-center text-ink-900 no-underline', className)}
+      className={cn(
+        'flex min-h-11 min-w-11 items-center text-ink-900 no-underline',
+        className,
+      )}
     >
       {({ isActive }) =>
         isActive ? (
@@ -35,28 +40,34 @@ function NavItem({ to, label, onNavigate, className }) {
 
 /**
  * Global navigation (section 4). From md the links sit inline; below md they live in a
- * menu panel under the header. The active page is marked with a blue highlighter.
+ * menu panel under the header, with the Reading light setting (section 10). The active page is
+ * marked with a blue highlighter. Every link and button is at least 44x44px. The menu and the
+ * lookup panel close on any navigation; Esc closes them and puts focus back on their button.
  */
 export function SiteHeader() {
   const { user, ready, logout } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const [open, setOpen] = useState(false)
+  // Like the lookup panel, the menu belongs to the page it was opened on.
+  const [menuAt, setMenuAt] = useState(null)
+  const open = menuAt === pathname
   // The lookup panel is tied to the page it was opened on, so it closes on any navigation.
   const [searchAt, setSearchAt] = useState(null)
   const searchOpen = searchAt === pathname
+  const { courses } = useCourses(searchOpen)
   const panelId = useId()
   const searchId = useId()
   const searchButton = useRef(null)
   const searchPanel = useRef(null)
+  const menuButton = useRef(null)
   const items = navItems(user)
   const close = () => {
-    setOpen(false)
+    setMenuAt(null)
     setSearchAt(null)
   }
 
   function toggleSearch() {
-    setOpen(false)
+    setMenuAt(null)
     setSearchAt(searchOpen ? null : pathname)
   }
 
@@ -86,6 +97,7 @@ export function SiteHeader() {
       onKeyDown={(e) => {
         if (e.key !== 'Escape') return
         if (searchOpen) searchButton.current?.focus()
+        else if (open) menuButton.current?.focus()
         close()
       }}
     >
@@ -93,7 +105,7 @@ export function SiteHeader() {
         <Link
           to="/"
           onClick={close}
-          className="font-serif text-lead font-semibold text-ink-900 no-underline md:text-h3"
+          className="inline-flex min-h-11 min-w-11 items-center font-serif text-lead font-semibold text-ink-900 no-underline md:text-h3"
         >
           Probable Books
         </Link>
@@ -144,12 +156,13 @@ export function SiteHeader() {
         </button>
 
         <button
+          ref={menuButton}
           type="button"
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => {
             setSearchAt(null)
-            setOpen((o) => !o)
+            setMenuAt(open ? null : pathname)
           }}
           className="-ml-6 grid size-12 place-items-center rounded-paper text-ink-900 hover:bg-paper-200 md:hidden"
         >
@@ -166,9 +179,13 @@ export function SiteHeader() {
         <div
           id={searchId}
           ref={searchPanel}
-          className="border-t border-paper-300 bg-paper-50 px-4 py-4 sm:px-8 lg:absolute lg:top-full lg:right-8 lg:z-20 lg:w-96 lg:rounded-dialog lg:border lg:border-paper-400 lg:shadow-stack"
+          className="border-t border-paper-300 bg-paper-50 px-4 py-4 sm:px-8 lg:absolute lg:top-full lg:right-8 lg:z-header lg:w-96 lg:rounded-dialog lg:border lg:border-paper-400 lg:shadow-stack"
         >
-          <CourseLookup autoFocus onNavigate={() => setSearchAt(null)} />
+          <CourseLookup
+            courses={courses}
+            autoFocus
+            onNavigate={() => setSearchAt(null)}
+          />
         </div>
       )}
 
@@ -212,6 +229,7 @@ export function SiteHeader() {
               </>
             )}
           </div>
+          <ReadingLight className="mt-4 border-t border-paper-300 pt-4" />
         </div>
       )}
     </header>
