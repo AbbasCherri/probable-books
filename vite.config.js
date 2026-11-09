@@ -8,4 +8,11 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  test: {
+    environment: 'jsdom',
+    setupFiles: ['./src/test/setup.js'],
+    css: false,
+    include: ['src/**/*.test.{js,jsx}'],
+    exclude: ['node_modules', 'dist', 'e2e', 'e2e-artifacts'],
+  },
 })

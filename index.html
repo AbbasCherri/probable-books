@@ -2,15 +2,22 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="description" content="Used textbooks, calculators and lab gear, tagged by course code." />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Used textbooks, calculators and lab gear, tagged by course code."
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Probable Books</title>
     <script>
       // Night reading: set the saved theme before first paint (section 10)
       try {
         var t = localStorage.getItem('pb.theme')
-        if (t === 'night' || t === 'day') document.documentElement.setAttribute('data-theme', t)
+        if (t === 'night' || t === 'day')
+          document.documentElement.setAttribute('data-theme', t)
       } catch (e) {}
     </script>
   </head>

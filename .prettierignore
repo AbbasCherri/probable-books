@@ -1,3 +1,7 @@
 dist
 node_modules
 package-lock.json
+e2e-artifacts
+test-results
+playwright-report
+.claude
