@@ -171,6 +171,9 @@
 
   body {
     position: relative;
+    /* Own stacking context, so the grain (z-index -1) paints above body's background but under
+       every bit of content. */
+    isolation: isolate;
     min-height: 100dvh;
     background-color: var(--color-paper-100);
     color: var(--color-ink-900);
