@@ -6,19 +6,33 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
+    <title>Probable Books</title>
     <meta
       name="description"
-      content="Used textbooks, calculators and lab gear, tagged by course code."
+      content="Used textbooks, calculators and lab gear from students, tagged by course code."
+    />
+    <!-- Day paper and Night ink (paper-100 in each theme, src/styles/index.css) -->
+    <meta name="color-scheme" content="light dark" />
+    <meta name="theme-color" content="#f5f2ea" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#171d30" media="(prefers-color-scheme: dark)" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Probable Books" />
+    <meta property="og:title" content="Probable Books" />
+    <meta
+      property="og:description"
+      content="Used textbooks, calculators and lab gear from students, tagged by course code."
     />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>Probable Books</title>
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <script>
       // Night reading: set the saved theme before first paint (section 10)
-      try {
-        var t = localStorage.getItem('pb.theme')
-        if (t === 'night' || t === 'day')
-          document.documentElement.setAttribute('data-theme', t)
-      } catch (e) {}
+      ;(function () {
+        try {
+          var theme = localStorage.getItem('pb.theme')
+          if (theme === 'night' || theme === 'day')
+            document.documentElement.setAttribute('data-theme', theme)
+        } catch (e) {}
+      })()
     </script>
   </head>
   <body>

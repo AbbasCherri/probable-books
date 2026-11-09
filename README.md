@@ -41,4 +41,11 @@ E2E environment variables:
 
 With no system Chrome, run `npx playwright install chromium` once.
 
+## Deploying
+
+`npm run build` writes a static site to `dist/`. Every route is client-side, so the host must
+answer unknown paths with `index.html`: `public/_redirects` (`/* /index.html 200`) does that on
+Netlify and Cloudflare Pages. On another host, add the equivalent rewrite (Vercel: a
+`vercel.json` with `{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }`).
+
 Demo login: `demo@probable.books` / `password123`. See CONTRIBUTING.md for the workflow.
