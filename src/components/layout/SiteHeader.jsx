@@ -5,6 +5,7 @@ import { CourseLookup } from '@/components/layout/CourseLookup'
 import { Highlight } from '@/components/annotate/Highlight'
 import { Button } from '@/components/ui/Button'
 import { useAuth } from '@/context/AuthContext'
+import { useCourses } from '@/context/CoursesContext'
 import { cn } from '@/lib/cn'
 
 function navItems(user) {
@@ -45,6 +46,7 @@ export function SiteHeader() {
   // The lookup panel is tied to the page it was opened on, so it closes on any navigation.
   const [searchAt, setSearchAt] = useState(null)
   const searchOpen = searchAt === pathname
+  const { courses } = useCourses(searchOpen)
   const panelId = useId()
   const searchId = useId()
   const searchButton = useRef(null)
@@ -168,7 +170,11 @@ export function SiteHeader() {
           ref={searchPanel}
           className="border-t border-paper-300 bg-paper-50 px-4 py-4 sm:px-8 lg:absolute lg:top-full lg:right-8 lg:z-20 lg:w-96 lg:rounded-dialog lg:border lg:border-paper-400 lg:shadow-stack"
         >
-          <CourseLookup autoFocus onNavigate={() => setSearchAt(null)} />
+          <CourseLookup
+            courses={courses}
+            autoFocus
+            onNavigate={() => setSearchAt(null)}
+          />
         </div>
       )}
 
