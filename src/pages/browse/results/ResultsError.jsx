@@ -11,7 +11,9 @@ export function ResultsError({ onRetry, className }) {
         className,
       )}
     >
-      <h2 className="text-h3 font-semibold text-ink-900">Couldn&apos;t load the index</h2>
+      <h2 className="font-sans text-h3 font-semibold text-ink-900">
+        Couldn&apos;t load the index
+      </h2>
       <p className="mt-1 text-ink-700">Check your connection and try again.</p>
       <Button variant="outline" className="mt-4" onClick={() => onRetry?.()}>
         Retry

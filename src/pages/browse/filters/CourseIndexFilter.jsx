@@ -45,7 +45,7 @@ export function CourseIndexFilter({ courses = [], selected = [], onToggle, class
                       <span className="text-small text-ink-500"> {c.title}</span>
                     </span>
                     <span className="dot-leader" aria-hidden="true" />
-                    <span className="text-ink-700 italic">{count}</span>
+                    <span className="font-serif text-ink-700 italic">{count}</span>
                   </label>
                 </li>
               )

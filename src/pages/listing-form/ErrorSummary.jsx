@@ -23,13 +23,12 @@ export function ErrorSummary({ errors, verb, focusRef }) {
     >
       <h2
         id="listing-error-summary"
-        className="flex items-center gap-2 text-lg font-semibold"
+        className="flex items-center gap-2 font-serif text-lead font-semibold"
       >
         <CircleAlert
-          size={20}
           strokeWidth={1.5}
           aria-hidden="true"
-          className="text-redpen-600"
+          className="size-5 text-redpen-600"
         />
         Fix {n} {n === 1 ? 'thing' : 'things'} to {verb}
       </h2>
@@ -39,7 +38,7 @@ export function ErrorSummary({ errors, verb, focusRef }) {
             <a
               href={`#${e.id}`}
               onClick={(event) => jumpTo(event, e.id)}
-              className="font-medium text-pen-600 underline underline-offset-3 hover:text-pen-700"
+              className="text-pen-600 underline underline-offset-3 hover:text-pen-700"
             >
               {e.message}
             </a>

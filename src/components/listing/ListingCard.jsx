@@ -9,7 +9,11 @@ import { ListingPhoto } from './ListingPhoto'
 import { PriceTag } from './PriceTag'
 
 const moreChip =
-  'h-7 items-center rounded-t-paper border-b border-paper-400 bg-paper-200 px-2 font-condensed text-sm font-semibold text-on-mark'
+  'h-7 items-center rounded-t-paper border-b border-paper-400 bg-paper-200 px-2 font-condensed text-small font-semibold text-ink-900'
+
+// The title reads the same at any heading level the page needs.
+const titleClass =
+  'font-sans text-body leading-snug font-semibold break-words text-ink-900 sm:text-h3'
 
 function More({ n, className }) {
   if (n <= 0) return null
@@ -56,7 +60,7 @@ export function ListingCard({ listing, variant = 'card', headingLevel = 3, class
     return (
       <article
         className={cn(
-          'relative flex items-center gap-4 border-b border-paper-300 py-3 transition-colors duration-150 ease-out hover:bg-paper-200',
+          'relative flex items-center gap-4 border-b border-paper-300 py-3 transition-paper hover:bg-paper-200',
           className,
         )}
       >
@@ -65,7 +69,7 @@ export function ListingCard({ listing, variant = 'card', headingLevel = 3, class
           className="w-20 shrink-0 rounded-paper border border-paper-400"
         />
         <div className="min-w-0 flex-1">
-          <Heading className="leading-snug font-semibold">
+          <Heading className={titleClass}>
             <Link
               to={href}
               className="text-ink-900 no-underline after:absolute after:inset-0 hover:underline"
@@ -73,7 +77,7 @@ export function ListingCard({ listing, variant = 'card', headingLevel = 3, class
               {listing.title}
             </Link>
           </Heading>
-          {byline && <p className="truncate text-sm text-ink-500">{byline}</p>}
+          {byline && <p className="truncate text-small text-ink-500">{byline}</p>}
           <div className="mt-1 flex flex-wrap gap-1">
             {listing.courseCodes.map((code) => (
               <CourseTab key={code} code={code} />
@@ -101,16 +105,16 @@ export function ListingCard({ listing, variant = 'card', headingLevel = 3, class
       <div className="absolute top-0 left-3">
         <Tabs codes={listing.courseCodes} />
       </div>
-      <div className="relative flex flex-1 flex-col overflow-hidden rounded-paper border border-paper-400 bg-paper-50 shadow-stack transition-colors duration-150 ease-out group-hover:border-ink-500">
+      <div className="relative flex flex-1 flex-col overflow-hidden rounded-paper border border-paper-400 bg-paper-50 shadow-stack transition-paper group-hover:border-ink-500">
         <div className="relative border-b border-paper-400">
           <ListingPhoto listing={listing} />
           {isNew && (
             // Dog-ear: posted in the last 7 days.
             <span
               aria-hidden="true"
-              className="absolute top-0 right-0 size-5 bg-paper-100 [clip-path:polygon(0_0,100%_0,100%_100%)]"
+              className="absolute top-0 right-0 size-5 bg-paper-100 dog-ear"
             >
-              <span className="absolute inset-0 bg-paper-300 [clip-path:polygon(0_0,0_100%,100%_100%)]" />
+              <span className="absolute inset-0 bg-paper-300 dog-ear-fold" />
             </span>
           )}
           {showStamp && (
@@ -120,7 +124,7 @@ export function ListingCard({ listing, variant = 'card', headingLevel = 3, class
           )}
         </div>
         <div className="flex flex-1 flex-col gap-0.5 p-3.5">
-          <Heading className="leading-snug font-semibold">
+          <Heading className={titleClass}>
             <Link
               to={href}
               className="text-ink-900 no-underline after:absolute after:inset-0 hover:underline"
@@ -128,7 +132,7 @@ export function ListingCard({ listing, variant = 'card', headingLevel = 3, class
               {listing.title}
             </Link>
           </Heading>
-          {byline && <p className="text-sm text-ink-500">{byline}</p>}
+          {byline && <p className="text-small text-ink-500">{byline}</p>}
           <div className="mt-auto flex items-end justify-between gap-3 pt-3">
             <PriceTag cents={listing.priceCents} retailCents={listing.retailCents} />
             <ConditionGrade condition={listing.condition} size="sm" />

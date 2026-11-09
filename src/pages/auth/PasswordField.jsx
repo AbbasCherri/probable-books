@@ -74,7 +74,7 @@ export function PasswordField({
           type="button"
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? 'Hide password' : 'Show password'}
-          className="absolute inset-y-0 right-0 flex min-w-16 items-center justify-center px-3 font-medium text-pen-600 hover:text-pen-700"
+          className="absolute inset-y-0 right-0 flex min-w-16 items-center justify-center px-3 text-pen-600 hover:text-pen-700"
         >
           {visible ? 'Hide' : 'Show'}
         </button>
@@ -93,7 +93,7 @@ export function PasswordField({
               />
             ))}
           </div>
-          <p id={strengthId} role="status" className="text-sm text-ink-500">
+          <p id={strengthId} role="status" className="text-small text-ink-500">
             {strength.label}
           </p>
         </>

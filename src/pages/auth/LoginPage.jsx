@@ -3,6 +3,7 @@ import { CircleAlert } from 'lucide-react'
 import { Link, Navigate, useLocation } from 'react-router'
 import { MarginNote } from '@/components/annotate/MarginNote'
 import { PageShell } from '@/components/layout/PageShell'
+import { pageTitleClass } from '@/components/layout/pageTitle'
 import { Button } from '@/components/ui/Button'
 import { TextField } from '@/components/ui/TextField'
 import { useAuth } from '@/context/AuthContext'
@@ -80,19 +81,19 @@ export default function LoginPage() {
   return (
     <PageShell chapter="Sign in" title={null} annotated>
       <div className="pt-6 sm:pt-8">
-        <div className="paper-card max-w-form hover:border-paper-400">
+        <div className="max-w-form paper-card">
           {/* Printed header row of the borrower's card */}
           <div className="flex items-baseline justify-between bg-ink-900 px-4 py-2.5 text-paper-50 sm:px-6">
             <span className="font-semibold">Probable Books</span>
-            <span className="font-serif text-sm italic">Borrower&rsquo;s card</span>
+            <span className="font-serif text-small italic">Borrower&rsquo;s card</span>
           </div>
 
           <form
             noValidate
             onSubmit={handleSubmit}
-            className="ruled flex flex-col gap-5 px-4 py-6 sm:px-6"
+            className="flex flex-col gap-5 ruled px-4 py-6 sm:px-6"
           >
-            <h1 className="font-serif">Sign in</h1>
+            <h1 className={pageTitleClass}>Sign in</h1>
 
             <TextField
               ref={emailRef}
@@ -138,13 +139,12 @@ export default function LoginPage() {
             {formError && (
               <p
                 role="alert"
-                className="flex items-start gap-1.5 text-sm font-medium text-redpen-600"
+                className="flex items-start gap-1.5 text-small text-redpen-600"
               >
                 <CircleAlert
-                  size={18}
                   strokeWidth={1.5}
                   aria-hidden="true"
-                  className="mt-0.5 shrink-0"
+                  className="mt-0.5 size-4.5 shrink-0"
                 />
                 <span>{formError}</span>
               </p>
@@ -162,7 +162,7 @@ export default function LoginPage() {
               >
                 Forgot password?
               </button>
-              <p role="status" className="text-sm text-ink-500">
+              <p role="status" className="text-small text-ink-500">
                 {showResetNote && 'Password reset is not available yet.'}
               </p>
               <p className="flex items-center gap-1.5">

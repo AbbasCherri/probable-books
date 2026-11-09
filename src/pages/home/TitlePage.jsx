@@ -20,7 +20,9 @@ export function TitlePage({ courses, loading, contents }) {
           Textbooks, calculators and lab gear from students one year ahead of you.
         </p>
         <div className="mt-8">
-          <h2 className="font-serif text-h3 text-ink-900">Popular this term</h2>
+          <h2 className="font-serif text-h3 font-semibold text-ink-900">
+            Popular this term
+          </h2>
           {loading ? (
             <ListingCardSkeleton className="mt-3 h-12" />
           ) : (
@@ -36,7 +38,7 @@ export function TitlePage({ courses, loading, contents }) {
       </div>
 
       <nav aria-label="Contents" className="mt-10 lg:col-span-5 lg:mt-2">
-        <h2 className="font-serif text-h3 text-ink-900">Contents</h2>
+        <h2 className="font-serif text-h3 font-semibold text-ink-900">Contents</h2>
         <ol className="mt-3 space-y-1">
           {contents.map((item, i) => (
             <li key={item.id}>

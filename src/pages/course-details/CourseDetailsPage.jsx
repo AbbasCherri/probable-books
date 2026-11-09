@@ -1,6 +1,7 @@
 import { Link, useParams, useSearchParams } from 'react-router'
 import { CourseTab } from '@/components/annotate/CourseTab'
 import { PageShell } from '@/components/layout/PageShell'
+import { pageTitleClass } from '@/components/layout/pageTitle'
 import { SectionHeading } from '@/components/layout/SectionHeading'
 import { Button } from '@/components/ui/Button'
 import { useAsync } from '@/hooks/useAsync'
@@ -34,16 +35,14 @@ function NotInIndex({ code, closest }) {
   return (
     <PageShell chapter="Syllabus">
       <div className="max-w-prose py-12">
-        <h1 className="font-serif text-h1-sm font-semibold text-ink-900 sm:text-h1">
-          No {code} in the index
-        </h1>
+        <h1 className={pageTitleClass}>No {code} in the index</h1>
         <p className="mt-4 text-ink-700">
           Check the code on your timetable. These are the closest we have:
         </p>
         <ul className="mt-4 flex flex-wrap gap-3">
           {closest.map((c) => (
             <li key={c}>
-              <CourseTab code={c} asLink className="h-11 px-3 text-base" />
+              <CourseTab code={c} asLink className="h-11 px-3 text-body" />
             </li>
           ))}
         </ul>
@@ -88,7 +87,7 @@ export default function CourseDetailsPage() {
         <div role="status" className="mt-6">
           <span className="sr-only">Loading course…</span>
           <div className="h-36 rounded-paper border border-dashed border-paper-400" />
-          <div className="ruled mt-10 h-48" />
+          <div className="mt-10 h-48 ruled" />
         </div>
       </PageShell>
     )
@@ -102,9 +101,7 @@ export default function CourseDetailsPage() {
     return (
       <PageShell chapter={`Syllabus, ${code}`}>
         <div role="alert" className="max-w-prose py-12">
-          <h1 className="font-serif text-h1-sm font-semibold text-ink-900 sm:text-h1">
-            This page didn&apos;t print
-          </h1>
+          <h1 className={pageTitleClass}>This page didn&apos;t print</h1>
           <p className="mt-4 text-ink-700">Something jammed on our end. Try again.</p>
           <Button className="mt-6" onClick={course.retry}>
             Retry
@@ -163,7 +160,7 @@ export default function CourseDetailsPage() {
             <ul className="mt-5 flex flex-wrap gap-3">
               {c.relatedCodes.map((r) => (
                 <li key={r}>
-                  <CourseTab code={r} asLink className="h-11 px-3 text-base" />
+                  <CourseTab code={r} asLink className="h-11 px-3 text-body" />
                 </li>
               ))}
             </ul>

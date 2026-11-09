@@ -2,6 +2,7 @@ import { useRef, useState } from 'react'
 import { CircleAlert } from 'lucide-react'
 import { Link, Navigate, useLocation } from 'react-router'
 import { PageShell } from '@/components/layout/PageShell'
+import { pageTitleClass } from '@/components/layout/pageTitle'
 import { Button } from '@/components/ui/Button'
 import { SelectField } from '@/components/ui/SelectField'
 import { TextField } from '@/components/ui/TextField'
@@ -118,19 +119,19 @@ export default function RegisterPage() {
   return (
     <PageShell chapter="Get a card" title={null}>
       <div className="pt-6 sm:pt-8">
-        <div className="paper-card max-w-form hover:border-paper-400">
+        <div className="max-w-form paper-card">
           {/* Printed header row of the card application */}
           <div className="flex items-baseline justify-between bg-ink-900 px-4 py-2.5 text-paper-50 sm:px-6">
             <span className="font-semibold">Probable Books</span>
-            <span className="font-serif text-sm italic">Card application</span>
+            <span className="font-serif text-small italic">Card application</span>
           </div>
 
           <form
             noValidate
             onSubmit={handleSubmit}
-            className="ruled flex flex-col gap-5 px-4 py-6 sm:px-6"
+            className="flex flex-col gap-5 ruled px-4 py-6 sm:px-6"
           >
-            <h1 className="font-serif">Get a card</h1>
+            <h1 className={pageTitleClass}>Get a card</h1>
 
             <TextField
               ref={nameRef}
@@ -212,13 +213,12 @@ export default function RegisterPage() {
               {errors.terms && (
                 <p
                   id="terms-error"
-                  className="flex items-start gap-1.5 text-sm font-medium text-redpen-600"
+                  className="flex items-start gap-1.5 text-small text-redpen-600"
                 >
                   <CircleAlert
-                    size={18}
                     strokeWidth={1.5}
                     aria-hidden="true"
-                    className="mt-0.5 shrink-0"
+                    className="mt-0.5 size-4.5 shrink-0"
                   />
                   <span>{errors.terms}</span>
                 </p>
@@ -228,13 +228,12 @@ export default function RegisterPage() {
             {formError && (
               <p
                 role="alert"
-                className="flex items-start gap-1.5 text-sm font-medium text-redpen-600"
+                className="flex items-start gap-1.5 text-small text-redpen-600"
               >
                 <CircleAlert
-                  size={18}
                   strokeWidth={1.5}
                   aria-hidden="true"
-                  className="mt-0.5 shrink-0"
+                  className="mt-0.5 size-4.5 shrink-0"
                 />
                 <span>{formError}</span>
               </p>

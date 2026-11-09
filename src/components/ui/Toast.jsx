@@ -93,14 +93,15 @@ function StickyNote({ message, onDismiss, onPause, onResume }) {
         aria-hidden="true"
         className="absolute -top-2.5 left-1/2 h-5 w-16 -translate-x-1/2 rotate-2 border border-paper-300 bg-paper-50/75"
       />
-      <p className="flex-1 pt-1.5 font-medium">{message}</p>
+      {/* The note is a course-tab colour in both modes, so its text and focus ring use on-mark. */}
+      <p className="flex-1 pt-1.5 text-on-mark">{message}</p>
       <button
         type="button"
         onClick={onDismiss}
         aria-label="Dismiss"
-        className="grid size-11 shrink-0 place-items-center rounded-paper text-ink-900 transition-colors duration-150 ease-out hover:bg-paper-50/60"
+        className="grid size-11 shrink-0 place-items-center rounded-paper text-on-mark transition-paper hover:bg-on-mark/10 focus-visible:outline-on-mark"
       >
-        <X size={18} strokeWidth={1.5} aria-hidden="true" />
+        <X strokeWidth={1.5} aria-hidden="true" className="size-4.5" />
       </button>
     </div>
   )

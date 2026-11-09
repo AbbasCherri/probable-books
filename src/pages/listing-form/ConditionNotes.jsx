@@ -22,10 +22,10 @@ export function ConditionNotes({ notes, onChange, error }) {
 
   return (
     <div className="flex flex-col gap-2">
-      <p id="listing-notes-label" className="font-medium">
+      <p id="listing-notes-label">
         Condition notes <span className="font-normal text-ink-500">optional</span>
       </p>
-      <p id="listing-notes-hint" className="text-sm text-ink-500">
+      <p id="listing-notes-hint" className="text-small text-ink-500">
         Up to {MAX_NOTES} short lines. Buyers read these first, so be specific.
       </p>
       {notes.length > 0 && (
@@ -50,7 +50,7 @@ export function ConditionNotes({ notes, onChange, error }) {
                     ),
                   )
                 }
-                className="min-h-11 w-full min-w-0 flex-1 rounded-paper border border-b-2 border-paper-400 border-b-ink-500 bg-paper-50 px-3 text-base placeholder:text-ink-500"
+                className="min-h-11 w-full min-w-0 flex-1 rounded-paper border border-b-2 border-paper-400 border-b-ink-500 bg-paper-50 px-3 text-body placeholder:text-ink-500"
               />
               <button
                 type="button"
@@ -58,7 +58,7 @@ export function ConditionNotes({ notes, onChange, error }) {
                 aria-label={`Remove note ${i + 1}`}
                 className="grid size-11 shrink-0 place-items-center rounded-paper text-ink-700 hover:bg-paper-200"
               >
-                <X size={18} strokeWidth={1.5} aria-hidden="true" />
+                <X strokeWidth={1.5} aria-hidden="true" className="size-4.5" />
               </button>
             </li>
           ))}
@@ -69,9 +69,9 @@ export function ConditionNotes({ notes, onChange, error }) {
           id="listing-notes-add"
           type="button"
           onClick={add}
-          className="-ml-2.5 inline-flex min-h-11 items-center gap-1.5 self-start rounded-paper px-2.5 font-medium text-pen-600 hover:bg-paper-200 hover:text-pen-700"
+          className="-ml-2.5 inline-flex min-h-11 items-center gap-1.5 self-start rounded-paper px-2.5 text-pen-600 hover:bg-paper-200 hover:text-pen-700"
         >
-          <Plus size={18} strokeWidth={1.5} aria-hidden="true" />
+          <Plus strokeWidth={1.5} aria-hidden="true" className="size-4.5" />
           {notes.length ? `Add another note (${left} left)` : 'Add a note'}
         </button>
       )}

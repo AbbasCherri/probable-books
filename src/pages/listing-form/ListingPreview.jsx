@@ -13,17 +13,11 @@ export function ListingPreview({ listing, hint }) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <p className="-rotate-1 font-hand text-lg leading-snug text-graphite">
-        How buyers see it
-      </p>
+      <p className="-rotate-1 font-hand text-note text-graphite">How buyers see it</p>
       <div ref={inertRef}>
         <ListingCard listing={listing} variant="card" />
       </div>
-      {hint && (
-        <p className="mt-4 -rotate-1 font-hand text-lg leading-snug text-graphite">
-          {hint}
-        </p>
-      )}
+      {hint && <p className="mt-4 -rotate-1 font-hand text-note text-graphite">{hint}</p>}
     </div>
   )
 }

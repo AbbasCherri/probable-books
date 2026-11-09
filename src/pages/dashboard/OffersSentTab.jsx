@@ -55,9 +55,12 @@ export function OffersSentTab({ offers, busyId, onWithdraw }) {
               </div>
               {stamp && <Stamp status={stamp} />}
             </div>
-            <h2 className="text-lg leading-snug font-semibold">
+            <h2 className="font-sans text-lead leading-snug font-semibold">
               {l.id ? (
-                <Link to={`/listings/${l.id}`} className="hover:underline">
+                <Link
+                  to={`/listings/${l.id}`}
+                  className="text-ink-900 no-underline hover:underline"
+                >
                   {l.title}
                 </Link>
               ) : (
@@ -65,7 +68,7 @@ export function OffersSentTab({ offers, busyId, onWithdraw }) {
               )}
             </h2>
             <p className="flex flex-wrap items-baseline gap-x-2.5">
-              <span className="font-serif text-2xl font-semibold text-pen-600 tabular-nums">
+              <span className="font-serif text-price font-semibold text-pen-600 tabular-nums">
                 {formatPrice(offer.amountCents)}
               </span>
               {l.priceCents ? (
@@ -75,7 +78,7 @@ export function OffersSentTab({ offers, busyId, onWithdraw }) {
                 </span>
               ) : null}
             </p>
-            <p className="text-sm text-ink-500">
+            <p className="text-small text-ink-500">
               {l.sellerName ? `Seller ${l.sellerName}, sent ` : 'Sent '}
               {shortDate(offer.createdAt)}
             </p>

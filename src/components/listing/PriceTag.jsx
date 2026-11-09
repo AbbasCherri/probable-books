@@ -3,8 +3,8 @@ import { cn } from '@/lib/cn'
 import { formatPrice, percentUnderRetail } from '@/lib/format'
 
 const SIZES = {
-  sm: 'text-lg',
-  md: 'text-2xl',
+  sm: 'text-lead',
+  md: 'text-price',
   lg: 'text-h1',
 }
 
@@ -34,7 +34,7 @@ export function PriceTag({
         {under != null && footnoteId && <FootnoteRef id={footnoteId} />}
       </p>
       {under != null && showSavings && (
-        <p className="mt-1 text-sm text-ink-500">{under}% under retail</p>
+        <p className="mt-1 text-small text-ink-500">{under}% under retail</p>
       )}
     </div>
   )

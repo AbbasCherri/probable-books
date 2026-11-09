@@ -47,10 +47,9 @@ export function SelectField({
           {children}
         </select>
         <ChevronDown
-          size={18}
           strokeWidth={1.5}
           aria-hidden="true"
-          className="pointer-events-none absolute top-1/2 right-3 -translate-y-1/2 text-ink-700"
+          className="pointer-events-none absolute top-1/2 right-3 size-4.5 -translate-y-1/2 text-ink-700"
         />
       </div>
     </Field>

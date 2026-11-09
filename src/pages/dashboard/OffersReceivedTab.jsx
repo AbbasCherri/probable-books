@@ -53,8 +53,11 @@ export function OffersReceivedTab({
             className="flex flex-col gap-4"
           >
             <div className="flex flex-wrap items-center gap-x-3.5 gap-y-2 border-b border-paper-300 pb-2.5">
-              <h2 id={headingId} className="text-lg font-semibold sm:text-xl">
-                <Link to={`/listings/${listing.id}`} className="hover:underline">
+              <h2 id={headingId} className="font-sans text-lead font-semibold sm:text-h3">
+                <Link
+                  to={`/listings/${listing.id}`}
+                  className="text-ink-900 no-underline hover:underline"
+                >
                   {listing.title}
                 </Link>
               </h2>
@@ -66,13 +69,15 @@ export function OffersReceivedTab({
               </span>
               <Stamp status={listing.status} />
               {pending > 0 && (
-                <span className="text-sm text-ink-500 sm:ml-auto">{pending} waiting</span>
+                <span className="text-small text-ink-500 sm:ml-auto">
+                  {pending} waiting
+                </span>
               )}
             </div>
 
             {askDeclineFor === listing.id && pending > 0 && (
               <div className="flex flex-col gap-3 rounded-paper border border-ink-900 bg-paper-50 p-4 sm:flex-row sm:flex-wrap sm:items-center">
-                <p className="font-medium sm:flex-1">
+                <p className="sm:flex-1">
                   You accepted an offer. Decline the other{' '}
                   {plural(pending, 'pending offer', 'pending offers')}?
                 </p>

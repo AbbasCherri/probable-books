@@ -1,4 +1,5 @@
 import { cn } from '@/lib/cn'
+import { pageTitleClass } from './pageTitle'
 
 /**
  * The page frame (section 4): running header, the page's one h1, and an optional margin column.
@@ -30,7 +31,7 @@ export function PageShell({
     <div className={cn('mx-auto w-full max-w-page flex-1 px-4 pb-20 sm:px-8', className)}>
       {chapter && (
         <div className="flex items-center gap-4 pt-5 sm:pt-6">
-          <p className="font-serif text-sm text-ink-500 italic">
+          <p className="font-serif text-small text-ink-500 italic">
             <span className="sm:hidden">{shortChapter}</span>
             <span className="hidden sm:inline">{chapter}</span>
           </p>
@@ -41,8 +42,9 @@ export function PageShell({
       {title && (
         <h1
           className={cn(
-            'mt-5 font-serif font-semibold tracking-tight text-ink-900 sm:mt-6',
-            display ? 'text-display-sm lg:text-display' : 'text-h1-sm sm:text-h1',
+            pageTitleClass,
+            'mt-5 sm:mt-6',
+            display && 'text-display-sm sm:text-display-sm lg:text-display',
           )}
         >
           {title}
