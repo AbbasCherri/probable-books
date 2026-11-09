@@ -24,7 +24,7 @@ export function TitlePage({ courses, loading, contents }) {
         <p className="mt-4 max-w-prose text-body text-ink-700">
           Textbooks, calculators and lab gear from students one year ahead of you.
         </p>
-        <CourseLookup className="mt-6 max-w-prose" />
+        <CourseLookup courses={courses} className="mt-6 max-w-prose" />
         <div className="mt-8">
           <h2 className="font-serif text-h3 font-semibold text-ink-900">
             Popular this term
@@ -44,7 +44,7 @@ export function TitlePage({ courses, loading, contents }) {
             <ul className={cn('mt-3', tabRow)}>
               {popular.map((c) => (
                 <li key={c.code}>
-                  <CourseTab code={c.code} asLink className="h-11" />
+                  <CourseTab code={c.code} asLink size="lg" />
                 </li>
               ))}
             </ul>
