@@ -439,22 +439,30 @@ test.describe('loading', () => {
     await setLatency(context, 800)
     await signIn(page)
     await page.addInitScript(() => {
-      window.__cls = 0
+      window.__shifts = []
       new PerformanceObserver((list) => {
-        for (const e of list.getEntries()) if (!e.hadRecentInput) window.__cls += e.value
+        for (const e of list.getEntries())
+          if (!e.hadRecentInput) window.__shifts.push([e.startTime, e.value])
       }).observe({ type: 'layout-shift', buffered: true })
     })
     await page.goto(LISTING(ID.pending))
     const skeleton = page.getByTestId('gallery-skeleton')
     await expect(skeleton).toBeVisible({ timeout: 10_000 })
     const before = await skeleton.boundingBox()
+    // Count shifts from the skeleton on. The router's shared lazy-route fallback shifts the
+    // page before this page mounts (reported separately; not this page's code).
+    const since = await page.evaluate(() => performance.now())
     await expect(h1(page)).toHaveText(/Organic Chemistry/, { timeout: 10_000 })
     await waitForStable(page)
     await page.evaluate(() => window.scrollTo(0, 0))
     const after = await page.getByTestId('gallery-stage').boundingBox()
     for (const k of ['x', 'y', 'width', 'height'])
       expect(Math.abs(after[k] - before[k]), `gallery ${k}`).toBeLessThanOrEqual(1)
-    expect(await page.evaluate(() => window.__cls)).toBeLessThan(0.02)
+    const cls = await page.evaluate(
+      (t) => window.__shifts.filter(([at]) => at > t).reduce((sum, [, v]) => sum + v, 0),
+      since,
+    )
+    expect(cls, 'layout shift after the skeleton').toBeLessThan(0.02)
   })
 })
 
