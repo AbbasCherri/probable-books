@@ -8,15 +8,24 @@ import { THEME_KEY } from '@/lib/constants'
 
 const DARK_QUERY = '(prefers-color-scheme: dark)'
 const listeners = new Set()
+const parse = (v) => (v === 'day' || v === 'night' ? v : 'system')
 
-function read() {
+// The saved choice; if storage is blocked or empty, what <html data-theme> already shows (the
+// index.html script, or a setTheme() whose save failed).
+function readSaved() {
   try {
-    const v = localStorage.getItem(THEME_KEY)
-    return v === 'day' || v === 'night' ? v : 'system'
+    const saved = parse(localStorage.getItem(THEME_KEY))
+    if (saved !== 'system') return saved
   } catch {
-    return 'system'
+    // Storage blocked: fall through to the attribute.
   }
+  return parse(document.documentElement.getAttribute('data-theme'))
 }
+
+// The store's snapshot. Kept here, not re-read from storage on every render, so a choice still
+// sticks for this page when storage refuses to save it.
+let current = typeof document === 'undefined' ? 'system' : readSaved()
+const getSnapshot = () => current
 
 function apply(theme) {
   const html = document.documentElement
@@ -28,15 +37,27 @@ function emit() {
   listeners.forEach((notify) => notify())
 }
 
+// Another tab saved a choice (or cleared storage: key null).
 function onStorage(event) {
   if (event.key !== THEME_KEY && event.key !== null) return
-  apply(read())
+  let saved = event.newValue
+  try {
+    saved = localStorage.getItem(THEME_KEY)
+  } catch {
+    // Keep the value the event carried.
+  }
+  current = parse(saved)
+  apply(current)
   emit()
 }
 
 function subscribe(notify) {
   listeners.add(notify)
-  if (listeners.size === 1) window.addEventListener('storage', onStorage)
+  if (listeners.size === 1) {
+    // First control on the page: catch up with anything that changed while none was mounted.
+    current = readSaved()
+    window.addEventListener('storage', onStorage)
+  }
   return () => {
     listeners.delete(notify)
     if (listeners.size === 0) window.removeEventListener('storage', onStorage)
@@ -52,7 +73,8 @@ function subscribeSystem(notify) {
 const systemIsDark = () => Boolean(window.matchMedia?.(DARK_QUERY).matches)
 
 export function setTheme(next) {
-  const theme = next === 'day' || next === 'night' ? next : 'system'
+  const theme = parse(next)
+  current = theme
   try {
     if (theme === 'system') localStorage.removeItem(THEME_KEY)
     else localStorage.setItem(THEME_KEY, theme)
@@ -70,7 +92,7 @@ export function setTheme(next) {
  *   resolved  'day' | 'night', what is showing now (system follows prefers-color-scheme)
  */
 export function useTheme() {
-  const theme = useSyncExternalStore(subscribe, read, () => 'system')
+  const theme = useSyncExternalStore(subscribe, getSnapshot, () => 'system')
   const dark = useSyncExternalStore(subscribeSystem, systemIsDark, () => false)
   const resolved = theme === 'system' ? (dark ? 'night' : 'day') : theme
   return [theme, setTheme, resolved]
