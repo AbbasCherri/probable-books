@@ -17,7 +17,10 @@ export function RootLayout() {
           Skip to content
         </a>
         {pending && (
-          <div aria-hidden="true" className="fixed inset-x-0 top-0 z-50 h-0.5 bg-pen-600" />
+          <div
+            aria-hidden="true"
+            className="fixed inset-x-0 top-0 z-50 h-0.5 bg-pen-600"
+          />
         )}
         <SiteHeader />
         <main id="main" tabIndex={-1} className="flex-1 outline-none">

@@ -17,7 +17,8 @@ export function RouteError({ standalone = false }) {
       <div role="alert" className="max-w-prose py-12">
         <h1 className={pageTitleClass}>This page didn&apos;t print</h1>
         <p className="mt-4 text-ink-700">
-          Something jammed on our end. Reload to try again, or start over from the home page.
+          Something jammed on our end. Reload to try again, or start over from the home
+          page.
         </p>
         <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3">
           <Button onClick={() => window.location.reload()}>Reload</Button>

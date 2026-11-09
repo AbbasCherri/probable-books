@@ -15,7 +15,7 @@ const page = (load, folio) => ({
 
 // First load only: the router is fetching the first page's code. Ruled paper, not a blank screen.
 function PageFallback() {
-  return <div className="ruled mx-auto my-12 h-48 max-w-page" aria-busy="true" />
+  return <div className="mx-auto my-12 h-48 max-w-page ruled" aria-busy="true" />
 }
 
 export const routes = [
