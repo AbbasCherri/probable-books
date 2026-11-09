@@ -38,7 +38,7 @@ export function ListingSkeleton() {
               <span className="h-6 w-11/12 border-b-2 border-paper-300" />
               <span className="h-6 w-2/3 border-b-2 border-paper-300" />
             </div>
-            <span className="ruled h-24" />
+            <span className="h-24 ruled" />
             <span className="hidden h-12 rounded-paper border border-dashed border-paper-400 lg:block" />
           </div>
         </div>
