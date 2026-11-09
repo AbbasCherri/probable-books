@@ -329,7 +329,7 @@ export default function ListingDetailsPage() {
               <PriceTag
                 cents={listing.priceCents}
                 retailCents={listing.retailCents}
-                size="lg"
+                size="xl"
                 footnoteId="retail"
                 showSavings={false}
               />
