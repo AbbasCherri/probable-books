@@ -19,10 +19,10 @@ export function ActiveFilters({ filters, onRemove, onClearAll, className }) {
           type="button"
           aria-label={`Remove filter: ${filter.label}`}
           onClick={() => onRemove?.(filter)}
-          className="hl hl-yellow inline-flex min-h-11 shrink-0 items-center gap-1.5 px-3 font-medium whitespace-nowrap text-on-mark"
+          className="inline-flex min-h-11 shrink-0 items-center gap-1.5 hl px-3 whitespace-nowrap text-on-mark hl-yellow"
         >
           <span className="max-w-64 truncate">{filter.label}</span>
-          <X strokeWidth={2} aria-hidden="true" className="size-4 shrink-0" />
+          <X strokeWidth={1.5} aria-hidden="true" className="size-4 shrink-0" />
         </button>
       ))}
       <button

@@ -2,7 +2,7 @@ import { Link } from 'react-router'
 import { cn } from '@/lib/cn'
 
 const ITEM =
-  'inline-flex min-h-11 min-w-11 items-center justify-center rounded-paper px-2 text-ink-900 no-underline transition-colors duration-150 ease-out hover:bg-paper-200'
+  'inline-flex min-h-11 min-w-11 items-center justify-center rounded-paper px-2 text-ink-900 no-underline transition-paper hover:bg-paper-200'
 
 /** Page numbers to show: first, last, current and its neighbours; null marks a gap. */
 function getWindow(page, pageCount) {

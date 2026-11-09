@@ -4,12 +4,11 @@ import { CircleAlert } from 'lucide-react'
 export function FieldError({ id, children }) {
   if (!children) return null
   return (
-    <p id={id} className="flex items-start gap-1.5 text-sm font-medium text-redpen-600">
+    <p id={id} className="flex items-start gap-1.5 text-small text-redpen-600">
       <CircleAlert
-        size={18}
         strokeWidth={1.5}
         aria-hidden="true"
-        className="mt-0.5 shrink-0"
+        className="mt-0.5 size-4.5 shrink-0"
       />
       <span>{children}</span>
     </p>

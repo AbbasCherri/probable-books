@@ -108,12 +108,11 @@ export function PhotoUploader({ id, photos, onChange, error, max = MAX_PHOTOS })
           )}
         >
           <Upload
-            size={26}
             strokeWidth={1.5}
             aria-hidden="true"
-            className="hidden text-ink-700 md:block"
+            className="hidden size-6.5 text-ink-700 md:block"
           />
-          <p className="hidden font-medium md:block">
+          <p className="hidden md:block">
             {dropping ? 'Drop to add them' : 'Drop photos here'}
           </p>
           <button
@@ -121,14 +120,9 @@ export function PhotoUploader({ id, photos, onChange, error, max = MAX_PHOTOS })
             type="button"
             onClick={() => inputRef.current?.click()}
             aria-describedby={error ? `${hintId} ${errorId}` : hintId}
-            className="inline-flex min-h-13 w-full items-center justify-center gap-2.5 rounded-paper border border-ink-900 bg-paper-50 px-4 font-medium transition-colors duration-150 ease-out hover:bg-paper-200 md:min-h-11 md:w-auto"
+            className="inline-flex min-h-13 w-full items-center justify-center gap-2.5 rounded-paper border border-ink-900 bg-paper-50 px-4 transition-paper hover:bg-paper-200 md:min-h-11 md:w-auto"
           >
-            <Camera
-              size={20}
-              strokeWidth={1.5}
-              aria-hidden="true"
-              className="md:hidden"
-            />
+            <Camera strokeWidth={1.5} aria-hidden="true" className="size-5 md:hidden" />
             <span className="md:hidden">Take or choose photos</span>
             <span className="hidden md:inline">Choose files</span>
           </button>
@@ -184,7 +178,7 @@ export function PhotoUploader({ id, photos, onChange, error, max = MAX_PHOTOS })
                   draggable={false}
                 />
                 {i === 0 && (
-                  <span className="absolute top-1.5 left-1.5 rounded-paper border border-ink-900 bg-paper-50 px-1.5 text-xs font-semibold">
+                  <span className="absolute top-1.5 left-1.5 rounded-paper border border-ink-900 bg-paper-50 px-1.5 text-caption font-semibold">
                     Cover
                   </span>
                 )}
@@ -202,7 +196,11 @@ export function PhotoUploader({ id, photos, onChange, error, max = MAX_PHOTOS })
                     }
                     className="grid size-11 place-items-center rounded-paper hover:bg-paper-200 disabled:text-ink-300 disabled:hover:bg-transparent"
                   >
-                    <ArrowLeft size={18} strokeWidth={1.5} aria-hidden="true" />
+                    <ArrowLeft
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                      className="size-4.5"
+                    />
                   </button>
                   <button
                     type="button"
@@ -211,7 +209,11 @@ export function PhotoUploader({ id, photos, onChange, error, max = MAX_PHOTOS })
                     aria-label={`Move photo ${i + 1} later`}
                     className="grid size-11 place-items-center rounded-paper hover:bg-paper-200 disabled:text-ink-300 disabled:hover:bg-transparent"
                   >
-                    <ArrowRight size={18} strokeWidth={1.5} aria-hidden="true" />
+                    <ArrowRight
+                      strokeWidth={1.5}
+                      aria-hidden="true"
+                      className="size-4.5"
+                    />
                   </button>
                 </div>
                 <button
@@ -220,7 +222,7 @@ export function PhotoUploader({ id, photos, onChange, error, max = MAX_PHOTOS })
                   aria-label={`Remove photo ${i + 1}`}
                   className="grid size-11 place-items-center rounded-paper hover:bg-paper-200"
                 >
-                  <X size={18} strokeWidth={1.5} aria-hidden="true" />
+                  <X strokeWidth={1.5} aria-hidden="true" className="size-4.5" />
                 </button>
               </div>
             </li>
@@ -228,7 +230,7 @@ export function PhotoUploader({ id, photos, onChange, error, max = MAX_PHOTOS })
         </ol>
       )}
 
-      <p id={hintId} className="text-sm text-ink-500">
+      <p id={hintId} className="text-small text-ink-500">
         {photos.length} of {max} added. The first photo is the cover.
         {photos.length > 1 && ' Drag to reorder, or use the arrows.'}
       </p>

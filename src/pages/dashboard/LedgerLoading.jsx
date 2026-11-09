@@ -4,7 +4,7 @@ export function LedgerLoading() {
     <div role="status" className="pt-6">
       <p className="sr-only">Opening your ledger…</p>
       <div aria-hidden="true">
-        <div className="border-b-3 border-double border-paper-300 py-2 font-serif text-sm text-ink-500 italic">
+        <div className="border-b-3 border-double border-paper-300 py-2 font-serif text-small text-ink-500 italic">
           Item
         </div>
         {['w-2/5', 'w-1/2', 'w-1/3', 'w-2/5'].map((w, i) => (

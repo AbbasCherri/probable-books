@@ -2,9 +2,9 @@ import { CONDITIONS } from '@/lib/constants'
 import { cn } from '@/lib/cn'
 
 const SIZES = {
-  sm: { ring: 'size-7 text-xs', word: 'text-sm' },
-  md: { ring: 'size-9 text-sm', word: 'text-base' },
-  lg: { ring: 'size-14 text-xl', word: 'text-h3' },
+  sm: { ring: 'size-7 text-caption', word: 'text-small' },
+  md: { ring: 'size-9 text-small', word: 'text-body' },
+  lg: { ring: 'size-14 text-h3', word: 'text-h3' },
 }
 
 /**
@@ -27,7 +27,7 @@ export function ConditionGrade({ condition, size = 'md', className }) {
       >
         {c.grade}
       </span>
-      <span className={cn('font-medium text-ink-900', s.word)}>
+      <span className={cn('text-ink-900', s.word)}>
         <span className="sr-only">Condition: grade {c.grade}, </span>
         {c.label}
       </span>
