@@ -1,39 +1,46 @@
 import { useId, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { useAsync } from '@/hooks/useAsync'
-import { getCourses } from '@/services/api'
-import { codeToSlug, normalizeCode } from '@/lib/courses'
+import { codeToSlug, matchCourses, normalizeCode } from '@/lib/courses'
 import { cn } from '@/lib/cn'
+import { plural } from '@/lib/format'
 import { Button } from '@/components/ui/Button'
+import { Popover } from '@/components/ui/Popover'
 
 const MAX_OPTIONS = 6
 
-export function CourseLookup({ onNavigate, autoFocus = false, className }) {
+/**
+ * Course lookup: a combobox of course codes and titles, then Look up (section 5.1).
+ *   const { courses } = useCourses(open)     // from CoursesProvider; components never fetch
+ *   <CourseLookup courses={courses} autoFocus onNavigate={close} />
+ * courses: [{ code, title }] or null while they load (a typed code still works: it goes
+ * straight to its course page; anything else searches Browse).
+ * Keyboard: arrows/Home/End move through the list, Enter picks; the first Esc closes the list,
+ * the next clears the text, and only then does Esc reach whatever holds the lookup.
+ * The match count is announced through a visually hidden status.
+ */
+export function CourseLookup({ courses, onNavigate, autoFocus = false, className }) {
   const navigate = useNavigate()
   const uid = useId()
   const inputId = `${uid}-input`
   const listId = `${uid}-list`
-  const { data: courses } = useAsync(() => getCourses(), [])
   const [value, setValue] = useState('')
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState(-1)
 
-  const options = useMemo(() => {
-    const q = value.trim().toLowerCase()
-    if (!q || !courses) return []
-    const compact = q.replace(/[\s-]/g, '')
-    return courses
-      .filter(
-        (c) =>
-          c.code.toLowerCase().includes(q) ||
-          c.code.toLowerCase().replace(' ', '').includes(compact) ||
-          (c.title ?? '').toLowerCase().includes(q),
-      )
-      .slice(0, MAX_OPTIONS)
-  }, [courses, value])
+  const query = value.trim()
+  const options = useMemo(
+    () => (query && courses ? matchCourses(courses, query, { limit: MAX_OPTIONS }) : []),
+    [courses, query],
+  )
 
   const expanded = open && options.length > 0
   const optionId = (i) => `${uid}-opt-${i}`
+  const count =
+    !query || !courses
+      ? ''
+      : options.length
+        ? `${plural(options.length, 'course')} found`
+        : 'No matching courses'
 
   function go(to) {
     navigate(to)
@@ -45,12 +52,11 @@ export function CourseLookup({ onNavigate, autoFocus = false, className }) {
   function submit() {
     const chosen = expanded && active >= 0 ? options[active] : null
     if (chosen) return go(`/courses/${codeToSlug(chosen.code)}`)
-    const text = value.trim()
-    if (!text) return
-    const code = normalizeCode(text)
+    if (!query) return
+    const code = normalizeCode(query)
     // A well-formed code goes straight to its course page; unknown codes get its own 404 state.
     if (code) return go(`/courses/${codeToSlug(code)}`)
-    go(`/browse?q=${encodeURIComponent(text)}`)
+    go(`/browse?q=${encodeURIComponent(query)}`)
   }
 
   function onKeyDown(e) {
@@ -74,6 +80,18 @@ export function CourseLookup({ onNavigate, autoFocus = false, className }) {
     } else if (e.key === 'Enter') {
       e.preventDefault()
       submit()
+    } else if (e.key === 'Escape') {
+      // One thing per press: close the list, then clear the text, then let it bubble.
+      if (expanded) {
+        setOpen(false)
+        setActive(-1)
+      } else if (value) {
+        setValue('')
+      } else {
+        return
+      }
+      e.preventDefault()
+      e.stopPropagation()
     }
   }
 
@@ -111,12 +129,14 @@ export function CourseLookup({ onNavigate, autoFocus = false, className }) {
             onBlur={() => setOpen(false)}
             className="min-h-11 w-full rounded-paper border border-ink-500 bg-paper-50 px-3 text-body text-ink-900"
           />
-          <ul
+          <Popover
+            as="ul"
+            open={expanded}
+            align="stretch"
             id={listId}
             role="listbox"
             aria-label="Matching courses"
-            hidden={!expanded}
-            className="absolute inset-x-0 top-full z-10 mt-1 max-h-72 overflow-y-auto rounded-paper border border-paper-400 bg-paper-50 shadow-stack"
+            className="max-h-72 overflow-y-auto py-1"
           >
             {options.map((c, i) => (
               <li
@@ -127,17 +147,20 @@ export function CourseLookup({ onNavigate, autoFocus = false, className }) {
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => go(`/courses/${codeToSlug(c.code)}`)}
                 className={cn(
-                  'flex min-h-11 cursor-pointer items-center gap-3 px-3 py-2 text-small',
+                  'flex min-h-11 cursor-pointer items-center gap-3 border-l-2 px-3 py-2 text-small text-ink-900',
                   i === active
-                    ? 'bg-hl-blue text-on-mark'
-                    : 'text-ink-900 hover:bg-paper-200',
+                    ? 'border-ink-900 bg-paper-200 font-semibold'
+                    : 'border-transparent hover:bg-paper-200',
                 )}
               >
                 <span className="font-semibold">{c.code}</span>
                 <span className="truncate">{c.title}</span>
               </li>
             ))}
-          </ul>
+          </Popover>
+          <p role="status" className="sr-only">
+            {count}
+          </p>
         </div>
         <Button type="submit" className="w-full sm:w-auto">
           Look up

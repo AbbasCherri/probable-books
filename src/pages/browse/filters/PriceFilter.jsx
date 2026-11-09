@@ -68,7 +68,7 @@ export function PriceFilter({ minPrice, maxPrice, onChange, className }) {
     type: 'number',
     inputMode: 'decimal',
     min: '0',
-    step: '1',
+    step: '0.01',
     className: 'min-w-0 flex-1',
     inputClassName: invalid ? INVALID : undefined,
     'aria-invalid': invalid ? true : undefined,

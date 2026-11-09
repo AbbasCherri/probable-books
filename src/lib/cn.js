@@ -27,6 +27,10 @@ const twMerge = extendTailwindMerge({
       container: ['page', 'form', 'margin'],
       animate: ['hl-draw', 'stamp-land'],
     },
+    // The z-index scale (popover < sticky < header < modal < toast), so z-modal replaces z-sticky.
+    classGroups: {
+      z: [{ z: ['popover', 'sticky', 'header', 'modal', 'toast'] }],
+    },
   },
 })
 

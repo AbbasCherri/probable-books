@@ -69,6 +69,30 @@ describe('reads', () => {
     expect(chem.stats.listingCount).toBeGreaterThan(24)
   })
 
+  it('keeps courses in memory: a second read skips the network delay', async () => {
+    const first = await api.getCourses()
+    localStorage.setItem('pb.mock.latency', '60000')
+    const fast = await Promise.race([
+      api.getCourses(),
+      new Promise((resolve) => setTimeout(() => resolve('slow'), 200)),
+    ])
+    expect(fast).toEqual(first)
+    // A copy every time: changing it does not change the cache.
+    fast[0].title = 'Scribbled over'
+    localStorage.setItem('pb.mock.latency', '0')
+    expect((await api.getCourses())[0].title).not.toBe('Scribbled over')
+  })
+
+  it('refreshes the course cache after a listing change, and still obeys the fail switch', async () => {
+    const before = (await api.getCourses()).find((c) => c.code === 'CHEM 201')
+    await asDemo()
+    await api.createListing(newListing())
+    const after = (await api.getCourses()).find((c) => c.code === 'CHEM 201')
+    expect(after.listingCount).toBe(before.listingCount + 1)
+    localStorage.setItem('pb.mock.fail', 'getCourses')
+    await expectError(api.getCourses(), 500)
+  })
+
   it('hides drafts from everyone but the owner', async () => {
     const drafts = (await asDemo(), await api.getMyListings()).filter(
       (l) => l.status === 'draft',

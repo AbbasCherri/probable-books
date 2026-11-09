@@ -31,7 +31,6 @@ import { SellerBlock } from './SellerBlock'
 import { endSentence } from './sentence'
 import { TornOut } from './TornOut'
 import { useFitsViewport } from './useFitsViewport'
-import './listingDetails.css'
 
 const RELATED_MAX = 12
 // Offers that still tie this buyer to the listing (a new offer would be refused).
@@ -330,7 +329,7 @@ export default function ListingDetailsPage() {
               <PriceTag
                 cents={listing.priceCents}
                 retailCents={listing.retailCents}
-                size="lg"
+                size="xl"
                 footnoteId="retail"
                 showSavings={false}
               />
@@ -431,7 +430,8 @@ export default function ListingDetailsPage() {
       {/* Below lg: the price and the main action stay under the thumb. */}
       <div
         data-testid="action-bar"
-        className="listing-action-bar sticky bottom-0 z-20 -mx-4 mt-12 border-t border-paper-400 bg-paper-50 px-4 pt-3 sm:-mx-8 sm:px-8 lg:hidden"
+        data-sticky-bar
+        className="sticky bottom-0 z-sticky -mx-4 mt-12 border-t border-paper-400 bg-paper-50 px-4 pt-3 pb-safe-3 sm:-mx-8 sm:px-8 lg:hidden"
       >
         {isOwner ? (
           // Owners know the price: phones drop it so both actions stay on one row.

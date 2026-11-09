@@ -572,7 +572,10 @@ function ListingForm({
       </form>
 
       {/* Sticky bottom bar, phones and tablets: main action under the thumb. */}
-      <div className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-2.5 border-t border-paper-400 bg-paper-50 px-4 pt-3 pb-safe-3 lg:hidden">
+      <div
+        data-sticky-bar
+        className="fixed inset-x-0 bottom-0 z-sticky grid grid-cols-5 gap-2.5 border-t border-paper-400 bg-paper-50 px-4 pt-3 pb-safe-3 lg:hidden"
+      >
         <Button
           variant="outline"
           size="lg"
