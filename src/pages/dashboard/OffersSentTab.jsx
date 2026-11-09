@@ -32,12 +32,6 @@ export function OffersSentTab({ offers, busyId, onWithdraw }) {
     <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       {[...offers].sort(byPendingThenNewest).map((offer) => {
         const l = offer.listing ?? {}
-        const stamp =
-          offer.status === 'withdrawn'
-            ? null
-            : offer.status === 'countered'
-              ? 'pending'
-              : offer.status
         let note = NOTES[offer.status] ?? ''
         if (offer.status === 'countered')
           note = `The seller countered at ${formatPrice(offer.counterCents)}.`
@@ -53,7 +47,7 @@ export function OffersSentTab({ offers, busyId, onWithdraw }) {
                   <CourseTab key={c} code={c} />
                 ))}
               </div>
-              {stamp && <Stamp status={stamp} />}
+              <Stamp status={offer.status} />
             </div>
             <h2 className="font-sans text-lead leading-snug font-semibold">
               {l.id ? (
