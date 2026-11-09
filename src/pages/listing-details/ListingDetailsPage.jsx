@@ -84,10 +84,19 @@ export default function ListingDetailsPage() {
   const location = useLocation()
   const toast = useToast()
   const reasonId = useId()
+  const offerNoteId = useId()
 
   const listingReq = useAsync(() => api.getListing(listingId), [listingId])
   const { data, error, retry } = listingReq
-  const loading = listingReq.loading || !ready
+  // A signed-in visitor's own sent offers, fetched alongside the listing so the page never
+  // shows Make an offer enabled and then takes it back. If this fails the page carries on;
+  // makeOffer() still refuses a second offer.
+  const mine = useAsync(
+    () =>
+      user ? api.getOffers({ direction: 'sent' }).catch(() => []) : Promise.resolve(null),
+    [user?.id, listingId],
+  )
+  const loading = listingReq.loading || !ready || mine.loading
 
   // Changes made on this page, tagged with the listing id so they reset on navigation.
   const [soldId, setSoldId] = useState(null)
@@ -111,14 +120,6 @@ export default function ListingDetailsPage() {
         ? api.getListings({ courses: [primary], pageSize: RELATED_MAX * 2 })
         : Promise.resolve(null),
     [primary],
-  )
-  // A buyer's own offers, so the page knows one is already waiting.
-  const mine = useAsync(
-    () =>
-      user && data && !isOwner
-        ? api.getOffers({ direction: 'sent' })
-        : Promise.resolve(null),
-    [user?.id, data?.id, isOwner],
   )
 
   const notFound = error?.status === 404
@@ -201,7 +202,11 @@ export default function ListingDetailsPage() {
     toast('Marked as sold. Nice one.')
   }
 
-  const actions = (size) =>
+  // The "You offered" note, when an offer of yours already waiting is what blocks a new one.
+  const showOfferNote = !isOwner && myOffer && myOffer.status !== 'accepted'
+  const offerReason = sentence ? reasonId : showOfferNote ? offerNoteId : undefined
+
+  const actions = (size, className) =>
     isOwner ? (
       <>
         <Button
@@ -209,12 +214,14 @@ export default function ListingDetailsPage() {
           to={`/listings/${listing.id}/edit`}
           variant="outline"
           size={size}
+          className={className}
         >
           Edit listing
         </Button>
         {status !== 'draft' && (
           <Button
             size={size}
+            className={className}
             disabled={sold}
             aria-describedby={sentence ? reasonId : undefined}
             onClick={() => setConfirmSold(true)}
@@ -226,31 +233,39 @@ export default function ListingDetailsPage() {
     ) : (
       <Button
         size={size}
+        className={className}
         disabled={!canOffer}
-        aria-describedby={sentence ? reasonId : undefined}
+        aria-describedby={offerReason}
         onClick={openOffer}
       >
         Make an offer
       </Button>
     )
 
-  const contact = isOwner ? null : user && seller?.email ? (
-    <>
-      <Button as="a" href={`mailto:${seller.email}`} variant="outline" className="w-full">
-        Contact seller
-      </Button>
-      <p className="mt-2 text-small break-all text-ink-500">
-        Or write to <span className="text-ink-900">{seller.email}</span>
+  // Nothing left to arrange once it sold; a reserved listing keeps contact for its buyer.
+  const contact =
+    isOwner || sold ? null : user && seller?.email ? (
+      <>
+        <Button
+          as="a"
+          href={`mailto:${seller.email}`}
+          variant="outline"
+          className="w-full"
+        >
+          Contact seller
+        </Button>
+        <p className="mt-2 text-small break-all text-ink-500">
+          Or write to <span className="text-ink-900">{seller.email}</span>
+        </p>
+      </>
+    ) : (
+      <p className="text-small text-ink-700">
+        <Link to="/login" state={{ from: location }}>
+          Sign in
+        </Link>{' '}
+        to see {seller?.name ?? 'the seller'}&rsquo;s email and contact them.
       </p>
-    </>
-  ) : (
-    <p className="text-small text-ink-700">
-      <Link to="/login" state={{ from: location }}>
-        Sign in
-      </Link>{' '}
-      to see {seller?.name ?? 'the seller'}&rsquo;s email and contact them.
-    </p>
-  )
+    )
 
   return (
     <PageShell chapter={`Listing, ${primary}`} title={null} className="pb-0 lg:pb-20">
@@ -351,8 +366,9 @@ export default function ListingDetailsPage() {
               </p>
             )}
 
-            {!isOwner && myOffer && myOffer.status !== 'accepted' && (
+            {showOfferNote && (
               <p
+                id={offerNoteId}
                 ref={offerNoteRef}
                 tabIndex={-1}
                 className="rounded-paper border border-pen-600 bg-pen-50 px-4 py-3 text-ink-900 outline-none"
@@ -417,10 +433,25 @@ export default function ListingDetailsPage() {
         data-testid="action-bar"
         className="listing-action-bar sticky bottom-0 z-20 -mx-4 mt-12 border-t border-paper-400 bg-paper-50 px-4 pt-3 sm:-mx-8 sm:px-8 lg:hidden"
       >
-        <div className="flex items-center gap-3">
-          <PriceTag cents={listing.priceCents} size="md" showSavings={false} />
-          <div className="ml-auto flex flex-wrap justify-end gap-2">{actions('md')}</div>
-        </div>
+        {isOwner ? (
+          // Owners know the price: phones drop it so both actions stay on one row.
+          <div className="flex items-center gap-3">
+            <PriceTag
+              cents={listing.priceCents}
+              size="md"
+              showSavings={false}
+              className="hidden sm:flex"
+            />
+            <div className="flex flex-1 gap-2 sm:ml-auto sm:flex-none">
+              {actions('md', 'flex-1 sm:flex-none')}
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <PriceTag cents={listing.priceCents} size="md" showSavings={false} />
+            <div className="ml-auto flex gap-2">{actions('md')}</div>
+          </div>
+        )}
       </div>
 
       {!isOwner && canOffer && (
