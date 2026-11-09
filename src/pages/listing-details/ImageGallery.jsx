@@ -139,7 +139,7 @@ export function ImageGallery({ listing, overlay, className }) {
           </p>
 
           {/* Phones: position dots, each a 44px button. */}
-          <ul className="mt-1 flex justify-center gap-1 sm:hidden">
+          <ul className="mt-1 flex justify-center gap-2 sm:hidden">
             {photos.map((p, i) => (
               <li key={i}>
                 <button {...pick(i)} className="group grid size-11 place-items-center">
