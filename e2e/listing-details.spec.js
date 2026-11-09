@@ -400,6 +400,11 @@ for (const [who, id, user] of [
     await expect(bar).toBeVisible()
     if (user)
       await expect(bar.getByRole('button', { name: 'Mark as sold' })).toBeVisible()
+    // The bar fits inside the scroll-padding that keeps focused content clear of it.
+    const padding = await page.evaluate(() =>
+      Number.parseFloat(getComputedStyle(document.documentElement).scrollPaddingBottom),
+    )
+    expect((await bar.boundingBox()).height).toBeLessThanOrEqual(padding)
     await page.evaluate(() => window.scrollTo(0, 0))
     const link = page.getByRole('link', { name: /^See everything for/ })
     await link.focus()
@@ -417,7 +422,7 @@ for (const [who, id, user] of [
 
 test.describe('loading', () => {
   test('the skeleton passes the quality gate', async ({ page, context }) => {
-    await setLatency(context, 4000)
+    await setLatency(context, 15_000)
     const log = collectConsole(page)
     await page.goto(LISTING(ID.open))
     await expect(
@@ -426,6 +431,8 @@ test.describe('loading', () => {
       timeout: 10_000,
     })
     await expectQuality(page, log)
+    // Still loading: the checks above ran against the skeleton, not the finished page.
+    await expect(page.getByTestId('gallery-skeleton')).toBeVisible()
   })
 
   test('nothing moves when the listing arrives', async ({ page, context }) => {
