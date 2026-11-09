@@ -66,6 +66,7 @@ export function ListingCard({ listing, variant = 'card', headingLevel = 3, class
       >
         <ListingPhoto
           listing={listing}
+          compact
           className="w-20 shrink-0 rounded-paper border border-paper-400"
         />
         <div className="min-w-0 flex-1">
@@ -133,9 +134,18 @@ export function ListingCard({ listing, variant = 'card', headingLevel = 3, class
             </Link>
           </Heading>
           {byline && <p className="text-small text-ink-500">{byline}</p>}
-          <div className="mt-auto flex items-end justify-between gap-3 pt-3">
+          {/* Phones (2-up, about 9rem wide): price and its savings line, then the grade, each
+              on one line. From sm there is room for them side by side. */}
+          <div
+            data-card-footer=""
+            className="mt-auto flex flex-col gap-2 pt-3 sm:flex-row sm:items-end sm:justify-between sm:gap-3"
+          >
             <PriceTag cents={listing.priceCents} retailCents={listing.retailCents} />
-            <ConditionGrade condition={listing.condition} size="sm" />
+            <ConditionGrade
+              condition={listing.condition}
+              size="sm"
+              className="whitespace-nowrap"
+            />
           </div>
           {isNew && <span className="sr-only">Posted this week.</span>}
         </div>

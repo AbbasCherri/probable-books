@@ -71,7 +71,7 @@ function SheetPanel({ onClose, title, footer, children, className }) {
   const dragging = dragY > 0
 
   return createPortal(
-    <div className="fixed inset-0 z-40">
+    <div className="fixed inset-0 z-modal">
       <div
         aria-hidden="true"
         onClick={onClose}

@@ -17,6 +17,7 @@ function offerInfo(listing, received) {
   }
 }
 
+/** Stamp has no draft status (it would read Pending), so drafts get a plain label here. */
 function OffersCell({ info, onShowOffers }) {
   if (info.pending > 0) {
     return (
@@ -146,7 +147,7 @@ export function ListingsTab({
                       <Link
                         to={`/listings/${l.id}`}
                         className={cn(
-                          'font-semibold no-underline hover:underline',
+                          'inline-flex min-h-11 items-center font-semibold no-underline hover:underline',
                           sold ? 'text-ink-500' : 'text-ink-900',
                         )}
                       >
@@ -203,13 +204,14 @@ export function ListingsTab({
           return (
             <li
               key={l.id}
-              className="flex gap-3 rounded-paper border border-paper-400 bg-paper-50 py-3 pr-1 pl-3 shadow-stack"
+              className="relative flex gap-3 rounded-paper border border-paper-400 bg-paper-50 py-3 pr-1 pl-3 shadow-stack"
             >
               <ListingThumb listing={l} className="w-18" />
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <Link
                   to={`/listings/${l.id}`}
-                  className="leading-snug font-semibold text-ink-900 no-underline hover:underline"
+                  // Stretched over the card so the whole card is a 44px+ target.
+                  className="leading-snug font-semibold text-ink-900 no-underline after:absolute after:inset-0 after:rounded-paper hover:underline"
                 >
                   {l.title}
                 </Link>
@@ -222,7 +224,7 @@ export function ListingsTab({
                     <button
                       type="button"
                       onClick={onShowOffers}
-                      className="min-h-11 text-small font-semibold text-pen-600 underline underline-offset-3"
+                      className="relative min-h-11 text-small font-semibold text-pen-600 underline underline-offset-3"
                     >
                       {plural(info.pending, 'new offer', 'new offers')}
                     </button>

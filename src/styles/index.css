@@ -118,6 +118,15 @@
   --text-display: 3.5rem;
   --text-display--line-height: 1.05;
 
+  /* Stacking order, lowest first: z-popover (menus, listboxes, popovers), z-sticky (sticky
+     bottom bars), z-header (the site header and its panels), z-modal (dialogs, sheets and their
+     scrim), z-toast (toasts, above a modal so they are seen). Use these, not numbers. */
+  --z-index-popover: 10;
+  --z-index-sticky: 20;
+  --z-index-header: 30;
+  --z-index-modal: 40;
+  --z-index-toast: 50;
+
   /* Motion only in answer to an action (section 3). Use with motion-safe:. */
   --animate-*: initial;
   --animate-hl-draw: hl-draw 300ms ease-out;
@@ -194,6 +203,20 @@
     mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 
+  /* Sticky bottom bars (section 3, Thumb zone): below lg, mark the bar with data-sticky-bar and
+     keep it within --sticky-bar-space (6.5rem covers a one-row bar of 48px buttons with a
+     little air, at any text size). While one is on the page, anything scrolled into view
+     (keyboard focus, #footnote jumps) stops above it, and toasts (bottom-clear-bars) rise
+     above it. The bar adds the safe-area inset itself (pb-safe-3). */
+  @media (width < 64rem) {
+    html:has([data-sticky-bar]) {
+      --sticky-bar-space: 6.5rem;
+      scroll-padding-bottom: calc(
+        var(--sticky-bar-space) + env(safe-area-inset-bottom, 0px)
+      );
+    }
+  }
+
   /* While a page is still loading (src/app/PageFallback.jsx), the footer stays out of sight, so
      it appears in place when the page arrives instead of jumping (no layout shift). */
   #main:has([data-page-fallback]) ~ footer {
@@ -247,6 +270,12 @@
 /* Sticky bars clear the home indicator (section 3, Safe areas): pb-safe-3 is pb-3 plus the inset. */
 @utility pb-safe-* {
   padding-bottom: calc(--spacing(--value(integer)) + env(safe-area-inset-bottom, 0px));
+}
+
+/* Fixed to the bottom of the screen, clear of the home indicator and of any sticky bottom bar
+   ([data-sticky-bar], below lg; see the base layer). Toasts use it. */
+@utility bottom-clear-bars {
+  bottom: calc(var(--sticky-bar-space, 1.5rem) + env(safe-area-inset-bottom, 0px));
 }
 
 /* Listing grid: columns from a rem minimum, so they drop to fewer when text is zoomed. */

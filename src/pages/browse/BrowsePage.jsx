@@ -17,6 +17,12 @@ import { ResultsGrid } from './results/ResultsGrid'
 import { ResultsHeader } from './results/ResultsHeader'
 import { useBrowseParams } from './useBrowseParams'
 
+function withoutParams(searchParams, ...keys) {
+  const next = new URLSearchParams(searchParams)
+  keys.forEach((k) => next.delete(k))
+  return next.toString()
+}
+
 /** Browse listings (doc 5.2). Every filter, the sort, the view and the page live in the URL. */
 export default function BrowsePage() {
   useDocumentTitle('Browse used course gear')
@@ -36,8 +42,11 @@ export default function BrowsePage() {
   // Widening past lg swaps the sheet for the rail; forget it was open so narrowing does not reopen it.
   if (isWide && sheetOpen) setSheetOpen(false)
 
-  const query = searchParams.toString()
-  const listings = useAsync(() => api.getListings(filters), [query])
+  // `view` only changes how results are drawn; switching Cards/Ledger must not refetch.
+  const fetchKey = withoutParams(searchParams, 'view')
+  // Everything but page and view: when this changes too, the page reset came from a filter.
+  const filterKey = withoutParams(searchParams, 'view', 'page')
+  const listings = useAsync(() => api.getListings(filters), [fetchKey])
   const courses = useAsync(() => api.getCourses(), [])
 
   const total = listings.data?.total ?? 0
@@ -49,15 +58,17 @@ export default function BrowsePage() {
   const restrictive = mostRestrictive(filters, total)
 
   // New page of results: start at the top of the list, not mid-scroll. Only when the page number
-  // really changed (not on mount, including StrictMode's second effect run).
-  const shownPage = useRef(filters.page)
+  // really changed (not on mount, including StrictMode's second effect run), and only from
+  // pagination: a filter or sort change also resets the page, but focus must stay in the filter.
+  const shown = useRef({ page: filters.page, filterKey })
   useEffect(() => {
-    if (shownPage.current === filters.page) return
-    shownPage.current = filters.page
+    const prev = shown.current
+    shown.current = { page: filters.page, filterKey }
+    if (prev.page === filters.page || prev.filterKey !== filterKey) return
     window.scrollTo({ top: 0 })
     // Keyboard users land at the new results, not back at the pagination they just used.
     document.getElementById('browse-title')?.focus({ preventScroll: true })
-  }, [filters.page])
+  }, [filters.page, filterKey])
 
   // A shared link to a page that no longer exists lands on the last real page.
   const outOfRange = !listings.loading && !listings.error && filters.page > pageCount
@@ -128,9 +139,13 @@ export default function BrowsePage() {
         {isWide && (
           // A sticky rail as tall as the screen; its padding keeps 1rem clear above and below.
           <aside
-            aria-label="Filters"
+            aria-labelledby="filters-rail-heading"
             className="sticky top-0 -mt-3 max-h-dvh self-start overflow-y-auto py-4 pr-3 pl-1"
           >
+            {/* Keeps the outline in order: h1 title, h2 Filters, h3 per filter group. */}
+            <h2 id="filters-rail-heading" className="sr-only">
+              Filters
+            </h2>
             {panel}
           </aside>
         )}

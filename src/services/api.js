@@ -34,6 +34,7 @@ const TABLES = ['courses', 'users', 'listings', 'offers']
 
 let db = null
 let ready = null
+let coursesCache = null
 
 const isDb = (x) =>
   !!x &&
@@ -74,6 +75,7 @@ function refreshSeedDates() {
 }
 
 function save() {
+  coursesCache = null // listing counts may have changed
   writeJSON(DB_KEY, db)
 }
 
@@ -378,14 +380,23 @@ export async function getMyListings() {
 }
 
 // ---------- courses ----------
+// The course index barely changes, and the header lookup asks for it every time it opens, so
+// it is kept in memory (coursesCache, at the top) until the next write (save() clears it).
+// Failures are never cached.
+
 export async function getCourses() {
+  if (coursesCache) {
+    failSwitch('getCourses')
+    return clone(coursesCache)
+  }
   await begin('getCourses')
-  return db.courses.map((c) => ({
+  coursesCache = db.courses.map((c) => ({
     ...clone(c),
     listingCount: db.listings.filter(
       (l) => l.status === 'active' && l.courseCodes.includes(c.code),
     ).length,
   }))
+  return clone(coursesCache)
 }
 
 export async function getCourse(code) {

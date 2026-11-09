@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef } from 'react'
+import { useId, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { useFocusTrap } from '@/hooks/useFocusTrap'
@@ -7,32 +7,39 @@ import { cn } from '@/lib/cn'
 /**
  * A modal sheet of paper (section 4). Below sm it rises from the bottom as a sheet, from sm
  * it sits centred. Traps focus, closes on Esc, the Close button or a click outside, and
- * returns focus to the trigger.
+ * returns focus to the trigger. useFocusTrap locks page scroll and makes #root inert while it
+ * is open, and releases both when the last modal closes.
  *
- *   <Dialog open={open} onClose={() => setOpen(false)} title="Delete this listing?">
- *     <p className="mt-2 text-ink-700">You can't undo this.</p>
+ *   <Dialog open={open} onClose={() => setOpen(false)} title="Delete this listing?"
+ *     description="You can't undo this.">
+ *     <div className="mt-5 flex gap-3">...buttons</div>
  *   </Dialog>
  *
- * Put [data-autofocus] on the control that should take focus first (the amount field, say).
+ * description: a line under the title, tied with aria-describedby. Or render your own text
+ * and pass its id as describedBy. Put [data-autofocus] on the control that should take focus
+ * first (the amount field, say).
  */
-export function Dialog({ open, onClose, title, className, children }) {
+export function Dialog({
+  open,
+  onClose,
+  title,
+  description,
+  describedBy,
+  className,
+  children,
+}) {
   const panel = useRef(null)
   const titleId = useId()
+  const descId = useId()
   useFocusTrap(panel, open)
-
-  useEffect(() => {
-    if (!open) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.body.style.overflow = prev
-    }
-  }, [open])
 
   if (!open) return null
 
+  const describedByIds =
+    [description ? descId : null, describedBy].filter(Boolean).join(' ') || undefined
+
   return createPortal(
-    <div className="fixed inset-0 z-40 flex items-end justify-center sm:items-center sm:p-6">
+    <div className="fixed inset-0 z-modal flex items-end justify-center sm:items-center sm:p-6">
       <div
         aria-hidden="true"
         className="absolute inset-0 bg-scrim/40"
@@ -43,6 +50,7 @@ export function Dialog({ open, onClose, title, className, children }) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
+        aria-describedby={describedByIds}
         tabIndex={-1}
         onKeyDown={(e) => {
           if (e.key === 'Escape') {
@@ -72,6 +80,11 @@ export function Dialog({ open, onClose, title, className, children }) {
             <span className="sr-only">Close</span>
           </button>
         </div>
+        {description && (
+          <p id={descId} className="mt-2 text-ink-700">
+            {description}
+          </p>
+        )}
         {children}
       </div>
     </div>,

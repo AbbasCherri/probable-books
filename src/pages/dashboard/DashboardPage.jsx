@@ -1,12 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 import { Plus } from 'lucide-react'
 import { PageShell } from '@/components/layout/PageShell'
+import { pageTitleClass } from '@/components/layout/pageTitle'
 import { Button } from '@/components/ui/Button'
 import { Dialog } from '@/components/ui/Dialog'
 import { useAsync } from '@/hooks/useAsync'
 import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { useToast } from '@/hooks/useToast'
+import { cn } from '@/lib/cn'
 import { formatPrice } from '@/lib/format'
 import * as api from '@/services/api'
 import { LedgerLoading } from './LedgerLoading'
@@ -42,6 +44,16 @@ export default function DashboardPage() {
   const [busyId, setBusyId] = useState(null)
   const [askDeclineFor, setAskDeclineFor] = useState(null)
   const [toDelete, setToDelete] = useState(null)
+  const focusTitle = useRef(false)
+  const titleRef = useRef(null)
+
+  // After a delete the row (and its menu button) is gone: put focus on the page title. Runs
+  // after the dialog's focus trap has handed focus back, so this wins.
+  useEffect(() => {
+    if (!focusTitle.current || toDelete) return
+    focusTitle.current = false
+    titleRef.current?.focus()
+  }, [toDelete])
 
   const listings = listingsQ.data ?? []
   const received = receivedQ.data ?? []
@@ -144,7 +156,10 @@ export default function DashboardPage() {
       () => api.deleteListing(listing.id),
       'Listing deleted.',
     )
-    if (ok) setToDelete(null)
+    if (ok) {
+      focusTitle.current = true
+      setToDelete(null)
+    }
   }
 
   const pendingOnDelete = toDelete
@@ -162,10 +177,18 @@ export default function DashboardPage() {
   ]
 
   return (
-    <PageShell chapter="Ledger" title="Your ledger">
+    <PageShell chapter="Ledger" title={null}>
+      <h1
+        ref={titleRef}
+        tabIndex={-1}
+        className={cn(pageTitleClass, 'mt-5 outline-none sm:mt-6')}
+      >
+        Your ledger
+      </h1>
       <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pb-7">
-        <p className="text-ink-700">
-          {loading ? ' ' : ledgerSummary(listings, received)}
+        {/* A line is reserved (and on phones a row of its own) so the summary arriving moves nothing. */}
+        <p className="min-h-lh basis-full text-ink-700 sm:basis-auto">
+          {loading ? '' : ledgerSummary(listings, received)}
         </p>
         <Button as={Link} to="/sell" variant="outline" size="lg">
           <Plus strokeWidth={1.5} aria-hidden="true" className="size-4.5" />

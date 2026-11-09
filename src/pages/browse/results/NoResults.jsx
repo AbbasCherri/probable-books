@@ -6,9 +6,12 @@ const short = (text, max = 28) => (text.length > max ? `${text.slice(0, max)}...
 
 /** Empty result set with one clear way forward. */
 export function NoResults({ restrictive, onRemoveRestrictive, onClearAll, className }) {
-  const note = restrictive
-    ? `Nothing is listed with ${short(restrictive.label, 60)}. Removing it may bring some back.`
-    : 'Try fewer filters or a different search.'
+  let note = 'Try fewer filters or a different search.'
+  if (restrictive?.key === 'q') {
+    note = `No listings match “${short(restrictive.value, 60)}”. Try a different search.`
+  } else if (restrictive) {
+    note = `No listings match “${short(restrictive.label, 60)}”. Removing it may bring some back.`
+  }
   return (
     <EmptyState
       title="Nothing matches"
