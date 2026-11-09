@@ -119,7 +119,16 @@ test('labels are body weight; listing titles are semibold', async ({ page, conte
 
 /** Standard deviation of luminance in a patch of empty page: paper grain makes it > 0. */
 async function grainStrength(page) {
-  const png = await page.screenshot({ clip: { x: 10, y: 300, width: 200, height: 120 } })
+  // Measure bare page: hide the app (header, main, footer) so only body and its grain show.
+  const root = page.locator('#root')
+  await root.evaluate((el) => (el.style.visibility = 'hidden'))
+  const { width, height } = page.viewportSize()
+  const w = Math.min(200, width - 20)
+  const h = Math.min(120, height - 20)
+  const png = await page.screenshot({
+    clip: { x: 10, y: Math.round((height - h) / 2), width: w, height: h },
+  })
+  await root.evaluate((el) => (el.style.visibility = ''))
   return page.evaluate(
     async (src) => {
       const img = new Image()
