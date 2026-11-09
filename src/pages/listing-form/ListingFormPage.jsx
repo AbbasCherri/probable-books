@@ -72,10 +72,7 @@ export default function ListingFormPage() {
             {existing.error.status === 404
               ? 'There is no listing with that ID.'
               : "The listing didn't load."}{' '}
-            <Link
-              to="/dashboard"
-              className="font-medium text-pen-600 underline underline-offset-3"
-            >
+            <Link to="/dashboard" className="text-pen-600 underline underline-offset-3">
               Back to your ledger
             </Link>
           </p>
@@ -281,10 +278,10 @@ function ListingForm({
         </p>
         <p
           role="status"
-          className="flex min-h-6 items-center gap-1.5 text-sm text-ink-500"
+          className="flex min-h-6 items-center gap-1.5 text-small text-ink-500"
         >
           {draftStatus === 'saved' && !isEdit && (
-            <Check size={16} strokeWidth={1.5} aria-hidden="true" />
+            <Check strokeWidth={1.5} aria-hidden="true" className="size-4" />
           )}
           {draftNote || ''}
         </p>
@@ -460,8 +457,8 @@ function ListingForm({
               className="mt-1 size-5 shrink-0 accent-ink-900"
             />
             <span>
-              <span className="block font-medium">Open to offers</span>
-              <span className="block text-sm text-ink-500">
+              <span className="block">Open to offers</span>
+              <span className="block text-small text-ink-500">
                 Buyers can offer less. You accept, counter or decline.
               </span>
             </span>
@@ -511,7 +508,7 @@ function ListingForm({
         {submitError && (
           <p
             role="alert"
-            className="rounded-paper border-2 border-redpen-600 bg-paper-50 px-4 py-3 font-medium text-redpen-600"
+            className="rounded-paper border-2 border-redpen-600 bg-paper-50 px-4 py-3 text-redpen-600"
           >
             {submitError}
           </p>
@@ -544,7 +541,7 @@ function ListingForm({
               onClick={() => setConfirmDelete(true)}
               className="ml-auto"
             >
-              <Trash2 size={18} strokeWidth={1.5} aria-hidden="true" />
+              <Trash2 strokeWidth={1.5} aria-hidden="true" className="size-4.5" />
               Delete listing
             </Button>
           )}
@@ -552,10 +549,7 @@ function ListingForm({
       </form>
 
       {/* Sticky bottom bar, phones and tablets: main action under the thumb. */}
-      <div
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-2.5 border-t border-paper-400 bg-paper-50 px-4 pt-3 lg:hidden"
-        style={{ paddingBottom: 'calc(0.75rem + env(safe-area-inset-bottom))' }}
-      >
+      <div className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 gap-2.5 border-t border-paper-400 bg-paper-50 px-4 pt-3 pb-safe-3 lg:hidden">
         <Button
           variant="outline"
           size="lg"

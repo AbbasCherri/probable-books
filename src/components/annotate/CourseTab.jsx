@@ -19,7 +19,7 @@ const TAB_CLASSES = {
  */
 export function CourseTab({ code, asLink = false, className }) {
   const classes = cn(
-    'inline-flex h-7 shrink-0 items-center rounded-t-paper px-2 font-condensed text-sm leading-none font-semibold whitespace-nowrap text-on-mark',
+    'inline-flex h-7 shrink-0 items-center rounded-t-paper px-2 font-condensed text-small leading-none font-semibold whitespace-nowrap text-on-mark',
     'border-b border-paper-400',
     TAB_CLASSES[tabColorFor(code)],
     asLink && 'no-underline hover:underline',

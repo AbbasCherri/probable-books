@@ -135,9 +135,7 @@ export function CourseCombobox({
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="font-medium">
-        Which courses use it
-      </label>
+      <label htmlFor={id}>Which courses use it</label>
       <div className="relative">
         <div
           className={cn(
@@ -155,7 +153,7 @@ export function CourseCombobox({
                 aria-label={`Remove ${code}`}
                 className="grid size-11 place-items-center rounded-paper text-ink-900 hover:bg-paper-200"
               >
-                <X size={16} strokeWidth={1.5} aria-hidden="true" />
+                <X strokeWidth={1.5} aria-hidden="true" className="size-4" />
               </button>
             </span>
           ))}
@@ -191,7 +189,7 @@ export function CourseCombobox({
               onBlur?.()
             }}
             onKeyDown={onKeyDown}
-            className="min-h-10 min-w-36 flex-1 bg-transparent px-1.5 text-base outline-none placeholder:text-ink-500"
+            className="min-h-10 min-w-36 flex-1 bg-transparent px-1.5 text-body outline-none placeholder:text-ink-500"
           />
         </div>
 
@@ -226,7 +224,7 @@ export function CourseCombobox({
                     m.course.code
                   )}
                 </span>
-                <span className="text-sm text-ink-700 sm:text-base">
+                <span className="text-small text-ink-700 sm:text-body">
                   {m.on === 'title' ? (
                     <Marked text={m.course.title} at={m.at} len={m.len} />
                   ) : (
@@ -250,12 +248,12 @@ export function CourseCombobox({
           </ul>
         )}
       </div>
-      <p id={hintId} className="text-sm text-ink-500">
+      <p id={hintId} className="text-small text-ink-500">
         {value.length} of {MAX_COURSES} added. Buyers search by code, so add every course
         that uses it.
       </p>
       <FieldError id={errorId}>{error}</FieldError>
-      {warning && <p className="text-sm text-ink-700">{warning}</p>}
+      {warning && <p className="text-small text-ink-700">{warning}</p>}
       <p aria-live="polite" className="sr-only">
         {warning || notice}
       </p>

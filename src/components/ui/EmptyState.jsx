@@ -18,7 +18,7 @@ export function EmptyState({ title, note, action, as: Heading = 'h2', className 
         <span className="border-t border-paper-300" />
         <span className="border-t border-paper-300" />
       </div>
-      <Heading className="text-h3 font-semibold text-ink-900">{title}</Heading>
+      <Heading className="font-sans text-h3 font-semibold text-ink-900">{title}</Heading>
       {note && <p className="mt-1 font-hand text-note text-graphite">{note}</p>}
       {action && <div className="mt-5">{action}</div>}
     </div>

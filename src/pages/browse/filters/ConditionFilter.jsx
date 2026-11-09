@@ -20,7 +20,7 @@ export function ConditionFilter({ selected = [], onToggle, className }) {
               aria-pressed={on}
               onClick={() => onToggle?.(key)}
               className={cn(
-                'inline-flex min-h-11 items-center gap-2 rounded-paper border px-3 transition-colors duration-150 ease-out',
+                'inline-flex min-h-11 items-center gap-2 rounded-paper border px-3 transition-paper',
                 on
                   ? 'border-ink-900 bg-ink-900 font-semibold text-paper-50'
                   : 'border-paper-400 bg-paper-50 text-ink-900 hover:bg-paper-200',
@@ -29,7 +29,7 @@ export function ConditionFilter({ selected = [], onToggle, className }) {
               <span
                 aria-hidden="true"
                 className={cn(
-                  'grid size-7 shrink-0 place-items-center rounded-full border-2 text-xs leading-none font-semibold',
+                  'grid size-7 shrink-0 place-items-center rounded-full border-2 text-caption leading-none font-semibold',
                   on ? 'border-paper-50' : 'border-redpen-600 text-redpen-600',
                 )}
               >

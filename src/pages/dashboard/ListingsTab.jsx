@@ -79,14 +79,19 @@ export function ListingsTab({
               aria-pressed={on}
               onClick={() => onStatusChange(f.id)}
               className={cn(
-                'inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-paper border px-3 transition-colors duration-150 ease-out',
+                'inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-paper border px-3 transition-paper',
                 on
-                  ? 'border-hl-yellow bg-hl-yellow font-semibold'
-                  : 'border-paper-400 font-medium hover:bg-paper-200',
+                  ? 'border-hl-yellow bg-hl-yellow font-semibold text-on-mark'
+                  : 'border-paper-400 text-ink-900 hover:bg-paper-200',
               )}
             >
               {f.label}
-              <span className="text-sm text-ink-700 tabular-nums">
+              <span
+                className={cn(
+                  'text-small tabular-nums',
+                  on ? 'text-on-mark' : 'text-ink-700',
+                )}
+              >
                 {counts[f.id] ?? 0}
               </span>
             </button>
@@ -103,7 +108,7 @@ export function ListingsTab({
         <table className="hidden w-full md:table">
           <caption className="sr-only">Your listings</caption>
           <thead>
-            <tr className="border-b-3 border-double border-ink-900 text-left font-serif text-sm text-ink-500 italic">
+            <tr className="border-b-3 border-double border-ink-900 text-left font-serif text-small text-ink-500 italic">
               <th scope="col" className="py-2 pr-3 font-normal">
                 Item
               </th>
@@ -133,7 +138,7 @@ export function ListingsTab({
               return (
                 <tr
                   key={l.id}
-                  className="border-b border-paper-300 transition-colors duration-150 ease-out hover:bg-paper-200"
+                  className="border-b border-paper-300 transition-paper hover:bg-paper-200"
                 >
                   <td className="py-2.5 pr-3">
                     <div className="flex items-center gap-3.5">
@@ -141,7 +146,7 @@ export function ListingsTab({
                       <Link
                         to={`/listings/${l.id}`}
                         className={cn(
-                          'font-medium hover:underline',
+                          'font-semibold no-underline hover:underline',
                           sold ? 'text-ink-500' : 'text-ink-900',
                         )}
                       >
@@ -158,7 +163,7 @@ export function ListingsTab({
                   </td>
                   <td
                     className={cn(
-                      'px-3 py-2.5 text-right font-serif text-lg font-semibold tabular-nums',
+                      'px-3 py-2.5 text-right font-serif text-lead font-semibold tabular-nums',
                       sold ? 'text-ink-500' : 'text-ink-900',
                     )}
                   >
@@ -204,12 +209,12 @@ export function ListingsTab({
               <div className="flex min-w-0 flex-1 flex-col gap-1">
                 <Link
                   to={`/listings/${l.id}`}
-                  className="leading-snug font-medium text-ink-900"
+                  className="leading-snug font-semibold text-ink-900 no-underline hover:underline"
                 >
                   {l.title}
                 </Link>
                 <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  <span className="font-serif text-lg font-semibold tabular-nums">
+                  <span className="font-serif text-lead font-semibold tabular-nums">
                     {formatPrice(l.priceCents)}
                   </span>
                   <Stamp status={l.status} />
@@ -217,12 +222,12 @@ export function ListingsTab({
                     <button
                       type="button"
                       onClick={onShowOffers}
-                      className="min-h-11 text-sm font-semibold text-pen-600 underline underline-offset-3"
+                      className="min-h-11 text-small font-semibold text-pen-600 underline underline-offset-3"
                     >
                       {plural(info.pending, 'new offer', 'new offers')}
                     </button>
                   ) : (
-                    <span className="text-sm text-ink-500">
+                    <span className="text-small text-ink-500">
                       {info.accepted ? `${info.accepted} accepted` : 'No offers'}
                     </span>
                   )}

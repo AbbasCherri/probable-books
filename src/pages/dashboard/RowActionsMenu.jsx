@@ -3,8 +3,9 @@ import { Link } from 'react-router'
 import { MoreHorizontal } from 'lucide-react'
 import { cn } from '@/lib/cn'
 
+// Menu items, buttons and the Edit link alike: ink text, no prose-link underline.
 const itemClass =
-  'flex min-h-11 w-full items-center px-3.5 text-left transition-colors duration-150 ease-out hover:bg-paper-200 focus-visible:bg-paper-200 focus-visible:outline-none'
+  'flex min-h-11 w-full items-center px-3.5 text-left text-ink-900 no-underline transition-paper hover:bg-paper-200 focus-visible:bg-paper-200 focus-visible:outline-none'
 
 /**
  * Row actions for one listing: Edit, Mark reserved / active, Mark sold, Delete.
@@ -74,11 +75,11 @@ export function RowActionsMenu({ listing, onSetStatus, onDelete, disabled }) {
         disabled={disabled}
         onClick={() => setOpen((o) => !o)}
         className={cn(
-          'grid size-11 place-items-center rounded-paper text-ink-900 transition-colors duration-150 ease-out hover:bg-paper-200 disabled:text-ink-300',
+          'grid size-11 place-items-center rounded-paper text-ink-900 transition-paper hover:bg-paper-200 disabled:text-ink-300',
           open && 'bg-paper-200',
         )}
       >
-        <MoreHorizontal size={20} strokeWidth={1.5} aria-hidden="true" />
+        <MoreHorizontal strokeWidth={1.5} aria-hidden="true" className="size-5" />
       </button>
       {open && (
         <ul

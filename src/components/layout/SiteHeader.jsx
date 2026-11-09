@@ -93,7 +93,7 @@ export function SiteHeader() {
         <Link
           to="/"
           onClick={close}
-          className="font-serif text-lg font-semibold text-ink-900 no-underline md:text-xl"
+          className="font-serif text-lead font-semibold text-ink-900 no-underline md:text-h3"
         >
           Probable Books
         </Link>
@@ -102,7 +102,7 @@ export function SiteHeader() {
           <ul className="flex gap-6">
             {items.map((item) => (
               <li key={item.to}>
-                <NavItem {...item} className="font-medium" />
+                <NavItem {...item} />
               </li>
             ))}
           </ul>
@@ -111,7 +111,7 @@ export function SiteHeader() {
         <div className={cn('hidden items-center gap-3 md:flex', !ready && 'invisible')}>
           {user ? (
             <>
-              <span className="text-sm text-ink-500">{user.name}</span>
+              <span className="text-small text-ink-500">{user.name}</span>
               <Button variant="ghost" size="sm" onClick={signOut}>
                 Sign out
               </Button>
@@ -120,7 +120,7 @@ export function SiteHeader() {
             <>
               <Link
                 to="/login"
-                className="flex min-h-11 items-center px-2 font-medium text-ink-900 no-underline hover:underline"
+                className="flex min-h-11 items-center px-2 text-ink-900 no-underline hover:underline"
               >
                 Sign in
               </Link>
@@ -139,7 +139,7 @@ export function SiteHeader() {
           onClick={toggleSearch}
           className="ml-auto grid size-12 place-items-center rounded-paper text-ink-900 hover:bg-paper-200 md:ml-0"
         >
-          <Search size={22} strokeWidth={1.5} aria-hidden="true" />
+          <Search strokeWidth={1.5} aria-hidden="true" className="size-5.5" />
           <span className="sr-only">Search courses</span>
         </button>
 
@@ -154,9 +154,9 @@ export function SiteHeader() {
           className="-ml-6 grid size-12 place-items-center rounded-paper text-ink-900 hover:bg-paper-200 md:hidden"
         >
           {open ? (
-            <X size={22} strokeWidth={1.5} aria-hidden="true" />
+            <X strokeWidth={1.5} aria-hidden="true" className="size-5.5" />
           ) : (
-            <Menu size={22} strokeWidth={1.5} aria-hidden="true" />
+            <Menu strokeWidth={1.5} aria-hidden="true" className="size-5.5" />
           )}
           <span className="sr-only">{open ? 'Close menu' : 'Menu'}</span>
         </button>
@@ -178,7 +178,7 @@ export function SiteHeader() {
             <ul className="flex flex-col">
               {items.map((item) => (
                 <li key={item.to}>
-                  <NavItem {...item} onNavigate={close} className="text-lg" />
+                  <NavItem {...item} onNavigate={close} className="text-lead" />
                 </li>
               ))}
             </ul>
@@ -186,7 +186,7 @@ export function SiteHeader() {
           <div className="mt-3 flex flex-col gap-3 border-t border-paper-300 pt-4">
             {user ? (
               <>
-                <p className="text-sm text-ink-500">Signed in as {user.name}</p>
+                <p className="text-small text-ink-500">Signed in as {user.name}</p>
                 <Button variant="outline" size="lg" onClick={signOut}>
                   Sign out
                 </Button>
@@ -196,7 +196,7 @@ export function SiteHeader() {
                 <Link
                   to="/login"
                   onClick={close}
-                  className="flex min-h-11 items-center text-lg text-ink-900 no-underline"
+                  className="flex min-h-11 items-center text-lead text-ink-900 no-underline"
                 >
                   Sign in
                 </Link>

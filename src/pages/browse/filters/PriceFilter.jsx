@@ -104,7 +104,7 @@ export function PriceFilter({ minPrice, maxPrice, onChange, className }) {
         <p
           id={errorId}
           role="alert"
-          className="mt-2 flex items-start gap-1.5 text-small font-medium text-redpen-600"
+          className="mt-2 flex items-start gap-1.5 text-small text-redpen-600"
         >
           <CircleAlert
             strokeWidth={1.5}

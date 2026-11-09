@@ -168,7 +168,7 @@ export default function DashboardPage() {
           {loading ? ' ' : ledgerSummary(listings, received)}
         </p>
         <Button as={Link} to="/sell" variant="outline" size="lg">
-          <Plus size={18} strokeWidth={1.5} aria-hidden="true" />
+          <Plus strokeWidth={1.5} aria-hidden="true" className="size-4.5" />
           Sell something
         </Button>
       </div>
@@ -186,7 +186,7 @@ export default function DashboardPage() {
           role="alert"
           className="mt-6 flex flex-wrap items-center gap-4 rounded-paper border-2 border-redpen-600 bg-paper-50 px-4 py-3"
         >
-          <p className="font-medium">Part of your ledger didn&apos;t load.</p>
+          <p>Part of your ledger didn&apos;t load.</p>
           <Button
             variant="outline"
             onClick={() => {

@@ -10,9 +10,9 @@ const STAMPS = {
 }
 
 const SIZES = {
-  sm: 'px-1.5 text-xs border-3',
-  md: 'px-2 text-sm border-4',
-  lg: 'px-3 py-0.5 text-xl border-6',
+  sm: 'px-1.5 text-caption border-3',
+  md: 'px-2 text-small border-4',
+  lg: 'px-3 py-0.5 text-h3 border-6',
 }
 
 /**
@@ -29,7 +29,7 @@ export function Stamp({ status, size = 'md', animate = false, className }) {
         'inline-block shrink-0 -rotate-3 rounded-paper border-double border-current font-condensed leading-normal font-semibold whitespace-nowrap',
         s.color,
         SIZES[size] ?? SIZES.md,
-        animate && 'stamp-land',
+        animate && 'motion-safe:animate-stamp-land',
         className,
       )}
     >

@@ -1,3 +1,4 @@
+import { pageTitleClass } from '@/components/layout/pageTitle'
 import { SelectField } from '@/components/ui/SelectField'
 import { cn } from '@/lib/cn'
 import { SORTS } from '@/lib/constants'
@@ -26,7 +27,7 @@ export function ResultsHeader({
         <h1
           id="browse-title"
           tabIndex={-1}
-          className="text-h1-sm font-semibold text-ink-900 outline-none sm:text-h1"
+          className={cn(pageTitleClass, 'outline-none')}
         >
           {title}
         </h1>
@@ -40,7 +41,7 @@ export function ResultsHeader({
           label="Sort"
           value={sort}
           onChange={(e) => onSortChange?.(e.target.value)}
-          className="min-w-0 flex-[1_1_9rem] sm:max-w-64 sm:flex-none"
+          className="min-w-0 grow basis-36 sm:max-w-64 sm:flex-none"
           inputClassName="min-w-0 max-w-full"
         >
           {Object.entries(SORTS).map(([value, label]) => (
@@ -57,7 +58,7 @@ export function ResultsHeader({
               aria-pressed={view === key}
               onClick={() => onViewChange?.(key)}
               className={cn(
-                'min-h-12 min-w-11 border border-ink-900 px-4 font-medium transition-colors duration-150 ease-out first:rounded-l-paper last:rounded-r-paper last:border-l-0',
+                'min-h-12 min-w-11 border border-ink-900 px-4 transition-paper first:rounded-l-paper last:rounded-r-paper last:border-l-0',
                 view === key
                   ? 'bg-ink-900 text-paper-50'
                   : 'bg-paper-50 text-ink-900 hover:bg-paper-200',
