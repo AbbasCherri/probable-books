@@ -1,6 +1,7 @@
 import { createBrowserRouter } from 'react-router'
 import { RootLayout } from './RootLayout'
 import { RequireAuth } from './RequireAuth'
+import { PageFallback } from './PageFallback'
 import { RouteError } from './RouteError'
 
 /**
@@ -13,12 +14,6 @@ const page = (load, folio) => ({
   handle: { folio },
 })
 
-// First load only: the router is fetching the first page's code. Ruled paper inside the header
-// and footer, not a blank screen.
-function PageFallback() {
-  return <div className="mx-auto my-12 h-48 max-w-page ruled" aria-busy="true" />
-}
-
 export const routes = [
   {
     element: <RootLayout />,
@@ -28,7 +23,8 @@ export const routes = [
       {
         // A failing page renders here, inside the header and footer.
         errorElement: <RouteError />,
-        // On this pathless route (not the root) so RootLayout renders and this fills its Outlet.
+        // First load only, while the router fetches the first page's code. On this pathless
+        // route (not the root) so RootLayout renders and the fallback fills its Outlet.
         HydrateFallback: PageFallback,
         children: [
           { path: '/', ...page(() => import('@/pages/home/HomePage'), 1) },
