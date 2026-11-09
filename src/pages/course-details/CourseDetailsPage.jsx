@@ -9,7 +9,7 @@ import { useDocumentTitle } from '@/hooks/useDocumentTitle'
 import { cn } from '@/lib/cn'
 import { SORTS } from '@/lib/constants'
 import { normalizeCode, tabColorFor } from '@/lib/courses'
-import { formatPrice, plural } from '@/lib/format'
+import { formatPrice } from '@/lib/format'
 import * as api from '@/services/api'
 import { CourseListings } from './CourseListings'
 import { RequiredMaterials } from './RequiredMaterials'
@@ -27,8 +27,9 @@ const BAND_CLASSES = {
 }
 
 function statsLine({ listingCount, minCents, medianCents }) {
-  if (!listingCount) return 'No listings yet'
-  return `${plural(listingCount, 'listing')}, from ${formatPrice(minCents)}, median ${formatPrice(medianCents)}`
+  // listingCount is active listings only, so say "for sale"; the section below counts sold too.
+  if (!listingCount) return 'Nothing for sale yet'
+  return `${listingCount} for sale, from ${formatPrice(minCents)}, median ${formatPrice(medianCents)}`
 }
 
 function NotInIndex({ code, closest }) {
