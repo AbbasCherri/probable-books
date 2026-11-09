@@ -5,6 +5,7 @@ import { CategoryFilter } from './CategoryFilter'
 import { ConditionFilter } from './ConditionFilter'
 import { PriceFilter } from './PriceFilter'
 import { OffersFilter } from './OffersFilter'
+import { legendClass } from './filterStyles'
 
 /**
  * All Browse filters in one column. Works in a sticky rail or a bottom sheet (fluid width).
@@ -21,7 +22,7 @@ export function FilterPanel({
   return (
     <div className={cn('flex min-w-0 flex-col gap-6', className)}>
       <section aria-labelledby="filter-search-heading">
-        <h3 id="filter-search-heading" className="mb-2">
+        <h3 id="filter-search-heading" className={legendClass}>
           Search
         </h3>
         <KeywordFilter
@@ -48,7 +49,7 @@ export function FilterPanel({
         onChange={(patch) => onChange?.(patch)}
       />
       <section aria-labelledby="filter-offers-heading">
-        <h3 id="filter-offers-heading" className="mb-1">
+        <h3 id="filter-offers-heading" className={cn(legendClass, 'mb-1')}>
           Offers
         </h3>
         <OffersFilter

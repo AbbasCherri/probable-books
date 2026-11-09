@@ -22,7 +22,7 @@ export function CourseIndex({ courses }) {
       <div className="mt-6 md:columns-2 md:gap-12 lg:columns-3">
         {groups.map(([dept, list]) => (
           <div key={dept} className="mb-8 break-inside-avoid">
-            <h3 className="border-b border-paper-400 pb-1 font-serif text-h3 text-ink-900">
+            <h3 className="border-b border-paper-400 pb-1 font-serif text-h3 font-semibold text-ink-900">
               {dept}
             </h3>
             <ul>
@@ -34,7 +34,9 @@ export function CourseIndex({ courses }) {
                   >
                     <span>{c.code}</span>
                     <span className="dot-leader" aria-hidden="true" />
-                    <span className="italic">{plural(c.listingCount, 'listing')}</span>
+                    <span className="font-serif italic">
+                      {plural(c.listingCount, 'listing')}
+                    </span>
                   </Link>
                 </li>
               ))}
