@@ -162,6 +162,8 @@ test('paper grain shows, fainter at night, and never blocks clicks', async ({
     strengths[theme] = await grainStrength(page)
     // The grain layer sits under the content: the point at the footer link hits the link.
     const link = page.getByRole('contentinfo').getByRole('link', { name: 'Browse' })
+    // On short screens the footer runs below the fold; elementFromPoint needs it on screen.
+    await link.scrollIntoViewIfNeeded()
     const box = await link.boundingBox()
     const hit = await page.evaluate(
       ([x, y]) => document.elementFromPoint(x, y)?.closest('a')?.textContent,
