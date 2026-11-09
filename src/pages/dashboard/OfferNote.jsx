@@ -12,7 +12,15 @@ function toCents(value) {
 }
 
 /** One received offer as a note to answer: Accept, Counter (inline amount), Decline kept apart. */
-export function OfferNote({ offer, askingCents, busy, onAccept, onDecline, onCounter }) {
+export function OfferNote({
+  offer,
+  askingCents,
+  canAccept = true,
+  busy,
+  onAccept,
+  onDecline,
+  onCounter,
+}) {
   const [countering, setCountering] = useState(false)
   const [amount, setAmount] = useState('')
   const [error, setError] = useState('')
@@ -93,23 +101,28 @@ export function OfferNote({ offer, askingCents, busy, onAccept, onDecline, onCou
 
       {pending && !countering && (
         <div className="mt-1 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
-          <Button
-            onClick={() => onAccept(offer)}
-            disabled={busy}
-            size="lg"
-            className="w-full sm:w-auto"
-          >
-            Accept
-          </Button>
-          <Button
-            variant="outline"
-            onClick={startCounter}
-            disabled={busy}
-            size="lg"
-            className="w-full sm:w-auto"
-          >
-            Counter
-          </Button>
+          {/* Once the listing is reserved (another offer accepted) only Decline makes sense (a countered offer could not be accepted either). */}
+          {canAccept && (
+            <Button
+              onClick={() => onAccept(offer)}
+              disabled={busy}
+              size="lg"
+              className="w-full sm:w-auto"
+            >
+              Accept
+            </Button>
+          )}
+          {canAccept && (
+            <Button
+              variant="outline"
+              onClick={startCounter}
+              disabled={busy}
+              size="lg"
+              className="w-full sm:w-auto"
+            >
+              Counter
+            </Button>
+          )}
           {/* Decline sits apart (a rule on phones, pushed right on wider screens) to avoid mis-taps. */}
           <div className="mt-1.5 border-t border-paper-300 pt-1.5 sm:mt-0 sm:ml-auto sm:border-0 sm:pt-0">
             <Button

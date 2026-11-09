@@ -18,6 +18,7 @@ export function ErrorSummary({ errors, verb, focusRef }) {
     <div
       ref={focusRef}
       tabIndex={-1}
+      role="region"
       aria-labelledby="listing-error-summary"
       className="mt-8 max-w-2xl rounded-paper border-2 border-redpen-600 bg-paper-50 px-5 py-4"
     >

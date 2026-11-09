@@ -1,7 +1,7 @@
 /** Ruled-paper placeholders while the ledger loads (no shimmering grey blocks). */
 export function LedgerLoading() {
   return (
-    <div role="status" className="pt-6">
+    <div role="status" className="min-h-screen pt-6">
       <p className="sr-only">Opening your ledger…</p>
       <div aria-hidden="true">
         <div className="border-b-3 border-double border-paper-300 py-2 font-serif text-small text-ink-500 italic">

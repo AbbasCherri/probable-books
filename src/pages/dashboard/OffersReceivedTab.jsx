@@ -101,6 +101,7 @@ export function OffersReceivedTab({
                   key={offer.id}
                   offer={offer}
                   askingCents={listing.priceCents}
+                  canAccept={listing.status === 'active'}
                   busy={busyId === offer.id}
                   onAccept={onAccept}
                   onDecline={onDecline}
