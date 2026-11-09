@@ -75,7 +75,7 @@ function SheetPanel({ onClose, title, footer, children, className }) {
       <div
         aria-hidden="true"
         onClick={onClose}
-        className="absolute inset-0 bg-ink-900/40"
+        className="absolute inset-0 bg-scrim/40"
       />
       <div
         ref={panelRef}
@@ -83,11 +83,13 @@ function SheetPanel({ onClose, title, footer, children, className }) {
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        style={dragging ? { transform: `translateY(${dragY}px)` } : undefined}
+        // The live drag offset is the one computed value; it follows the finger frame by frame.
+        style={dragging ? { '--drag-y': `${dragY}px` } : undefined}
         className={cn(
-          'absolute inset-x-0 bottom-0 flex max-h-[85dvh] flex-col rounded-t-dialog border border-b-0 border-paper-400 bg-paper-50 shadow-stack outline-none',
-          !dragging &&
-            'motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out',
+          'absolute inset-x-0 bottom-0 flex max-h-5/6 flex-col rounded-t-dialog border border-b-0 border-paper-400 bg-paper-50 shadow-stack outline-none',
+          dragging
+            ? 'translate-y-(--drag-y)'
+            : 'motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out',
           !entered && 'motion-safe:translate-y-full',
           className,
         )}
@@ -103,23 +105,29 @@ function SheetPanel({ onClose, title, footer, children, className }) {
           <span aria-hidden="true" className="h-1 w-10 rounded-full bg-paper-400" />
         </div>
         <div className="flex shrink-0 items-center justify-between gap-3 border-b border-paper-300 pr-2 pl-4">
-          <h2 id={titleId} className="text-h3">
+          <h2 id={titleId} className="font-sans text-h3 font-semibold text-ink-900">
             {title}
           </h2>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-paper px-3 font-medium text-ink-900 transition-colors duration-150 ease-out hover:bg-paper-200"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-paper px-3 text-ink-900 transition-paper hover:bg-paper-200"
           >
             <X strokeWidth={1.5} aria-hidden="true" className="size-5" />
             Close
           </button>
         </div>
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4">
+        {/* Whatever sits last clears the home indicator (pb-safe-4). */}
+        <div
+          className={cn(
+            'min-h-0 flex-1 overflow-y-auto overscroll-contain p-4',
+            !footer && 'pb-safe-4',
+          )}
+        >
           {children}
         </div>
         {footer ? (
-          <div className="shrink-0 border-t border-paper-300 bg-paper-50 p-4">
+          <div className="shrink-0 border-t border-paper-300 bg-paper-50 p-4 pb-safe-4">
             {footer}
           </div>
         ) : null}
