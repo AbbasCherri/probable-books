@@ -43,7 +43,6 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [remember, setRemember] = useState(false)
   const [errors, setErrors] = useState({})
   const [formError, setFormError] = useState('')
   const [submitting, setSubmitting] = useState(false)
@@ -126,16 +125,6 @@ export default function LoginPage() {
               onBlur={(e) => setError('password', validatePassword(e.target.value))}
             />
 
-            <label className="flex min-h-11 items-center gap-3">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={(e) => setRemember(e.target.checked)}
-                className="size-5 accent-ink-900"
-              />
-              Remember me
-            </label>
-
             {formError && (
               <p
                 role="alert"
@@ -151,7 +140,7 @@ export default function LoginPage() {
             )}
 
             <Button type="submit" size="lg" className="w-full" disabled={submitting}>
-              {submitting ? 'Signing in' : 'Sign in'}
+              {submitting ? 'Signing in…' : 'Sign in'}
             </Button>
 
             <div className="flex flex-col gap-2">
