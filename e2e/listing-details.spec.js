@@ -42,9 +42,11 @@ const offerButton = (page) => page.getByRole('button', { name: 'Make an offer' }
 
 // Known issues in shared components, reported separately (not this page's to fix):
 // - SiteHeader/SiteFooter have targets under 44px (logo, Sell, Get a card, Sign out).
-// - ListingCard's "+n courses" chip is text-on-mark on bg-paper-200, unreadable in Night.
+//   Remove SHARED_CHROME once the shared header/footer target fix merges.
 const SHARED_CHROME = ['body header', 'body footer']
-const MORE_CHIP = 'article .bg-paper-200'
+// - ListingCard's "+n courses" chip in the related shelf is text-on-mark on bg-paper-200,
+//   unreadable in Night. Remove MORE_CHIP once the foundation branch's chip fix merges.
+const MORE_CHIP = '[aria-labelledby="related-heading"] article .bg-paper-200'
 
 /** expectPageQuality, scoped past the shared-component issues above. */
 async function expectQuality(page, log) {
@@ -53,6 +55,14 @@ async function expectQuality(page, log) {
     axeOptions: { exclude: [MORE_CHIP] },
   })
   await expectTargets44(page, { strict: true, exclude: SHARED_CHROME })
+}
+
+/** Mock API delay for this test (registered after the beforeEach '0', so it wins). */
+async function setLatency(context, ms) {
+  await context.addInitScript(
+    (v) => localStorage.setItem('pb.mock.latency', v),
+    String(ms),
+  )
 }
 
 async function open(page, id) {
@@ -167,7 +177,36 @@ test.describe('active listing, open to offers', () => {
     const log = await open(page, ID.pending)
     await expect(page.getByText(/You offered \$40/)).toBeVisible()
     await expect(offerButton(page)).toBeDisabled()
+    // The disabled button says why: the note about the offer already waiting.
+    await expect(offerButton(page)).toHaveAccessibleDescription(/You offered \$40/)
     await expectQuality(page, log)
+  })
+
+  test('the button is never enabled while your offers are still loading', async ({
+    page,
+    context,
+  }) => {
+    await setLatency(context, 800)
+    await signIn(page)
+    // Record any moment a "Make an offer" button exists and is enabled.
+    await page.addInitScript(() => {
+      window.__offerEnabled = false
+      const check = () => {
+        for (const b of document.querySelectorAll('button')) {
+          if (b.textContent.trim() === 'Make an offer' && !b.disabled)
+            window.__offerEnabled = true
+        }
+      }
+      new MutationObserver(check).observe(document, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+      })
+    })
+    await page.goto(LISTING(ID.pending))
+    await expect(page.getByText(/You offered \$40/)).toBeVisible({ timeout: 10_000 })
+    await waitForStable(page)
+    expect(await page.evaluate(() => window.__offerEnabled)).toBe(false)
   })
 
   test('Esc closes the offer dialog and focus returns to its trigger', async ({
@@ -193,12 +232,16 @@ test.describe('closed listings', () => {
   })
 
   test('sold: SOLD stamp over the gallery and the reason', async ({ page }, testInfo) => {
+    await signIn(page)
     const log = await open(page, ID.sold)
     await expect(
       page.getByTestId('gallery').getByText('Sold', { exact: true }),
     ).toBeVisible()
     await expect(offerButton(page)).toBeDisabled()
     await expect(page.getByText(/This sold/)).toBeVisible()
+    // Nothing left to arrange: no Contact seller, no email, even signed in.
+    await expect(page.getByRole('link', { name: 'Contact seller' })).toHaveCount(0)
+    await expect(page.getByText('sara@probable.books')).toHaveCount(0)
     await expectQuality(page, log)
     await shot(page, testInfo, 'listing-sold-day')
   })
@@ -343,25 +386,69 @@ test.describe('long content', () => {
   })
 })
 
-test('the bottom bar never hides focused content (phones and tablets)', async ({
-  page,
-}) => {
-  test.skip(isWide(page), 'the sticky bar is below lg only')
-  await open(page, ID.noPhotos)
-  const bar = page.getByTestId('action-bar')
-  await expect(bar).toBeVisible()
-  await page.evaluate(() => window.scrollTo(0, 0))
-  const link = page.getByRole('link', { name: /^See everything for/ })
-  await link.focus()
-  // Tabbing down scrolls just enough to reveal the next control, flush with the bottom edge
-  // (minus scroll-padding). element.focus() centres instead, so align to the end explicitly.
-  await link.evaluate((el) => el.scrollIntoView({ block: 'end', behavior: 'instant' }))
-  const gap = async () => {
-    const [l, b] = await Promise.all([link.boundingBox(), bar.boundingBox()])
-    return b.y - (l.y + l.height)
-  }
-  await expect.poll(gap, { timeout: 5_000 }).toBeGreaterThanOrEqual(0)
-  await expect(link).toBeInViewport()
+for (const [who, id, user] of [
+  ['buyer', ID.noPhotos, null],
+  ['owner', 'lst_030', 'usr_demo'],
+]) {
+  test(`the bottom bar never hides focused content (${who}, phones and tablets)`, async ({
+    page,
+  }) => {
+    test.skip(isWide(page), 'the sticky bar is below lg only')
+    if (user) await signIn(page, user)
+    await open(page, id)
+    const bar = page.getByTestId('action-bar')
+    await expect(bar).toBeVisible()
+    if (user)
+      await expect(bar.getByRole('button', { name: 'Mark as sold' })).toBeVisible()
+    await page.evaluate(() => window.scrollTo(0, 0))
+    const link = page.getByRole('link', { name: /^See everything for/ })
+    await link.focus()
+    // Tabbing down scrolls just enough to reveal the next control, flush with the bottom
+    // edge (minus scroll-padding). element.focus() centres instead, so align to the end.
+    await link.evaluate((el) => el.scrollIntoView({ block: 'end', behavior: 'instant' }))
+    const gap = async () => {
+      const [l, b] = await Promise.all([link.boundingBox(), bar.boundingBox()])
+      return b.y - (l.y + l.height)
+    }
+    await expect.poll(gap, { timeout: 5_000 }).toBeGreaterThanOrEqual(0)
+    await expect(link).toBeInViewport()
+  })
+}
+
+test.describe('loading', () => {
+  test('the skeleton passes the quality gate', async ({ page, context }) => {
+    await setLatency(context, 4000)
+    const log = collectConsole(page)
+    await page.goto(LISTING(ID.open))
+    await expect(
+      page.getByRole('status').filter({ hasText: 'Loading the listing' }),
+    ).toBeVisible({
+      timeout: 10_000,
+    })
+    await expectQuality(page, log)
+  })
+
+  test('nothing moves when the listing arrives', async ({ page, context }) => {
+    await setLatency(context, 800)
+    await signIn(page)
+    await page.addInitScript(() => {
+      window.__cls = 0
+      new PerformanceObserver((list) => {
+        for (const e of list.getEntries()) if (!e.hadRecentInput) window.__cls += e.value
+      }).observe({ type: 'layout-shift', buffered: true })
+    })
+    await page.goto(LISTING(ID.pending))
+    const skeleton = page.getByTestId('gallery-skeleton')
+    await expect(skeleton).toBeVisible({ timeout: 10_000 })
+    const before = await skeleton.boundingBox()
+    await expect(h1(page)).toHaveText(/Organic Chemistry/, { timeout: 10_000 })
+    await waitForStable(page)
+    await page.evaluate(() => window.scrollTo(0, 0))
+    const after = await page.getByTestId('gallery-stage').boundingBox()
+    for (const k of ['x', 'y', 'width', 'height'])
+      expect(Math.abs(after[k] - before[k]), `gallery ${k}`).toBeLessThanOrEqual(1)
+    expect(await page.evaluate(() => window.__cls)).toBeLessThan(0.02)
+  })
 })
 
 test('a failed load says so and Retry recovers', async ({ page, context }, testInfo) => {

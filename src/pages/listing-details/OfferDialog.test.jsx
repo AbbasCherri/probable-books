@@ -70,6 +70,24 @@ describe('OfferDialog', () => {
     expect(amount).toHaveAttribute('inputmode', 'decimal')
   })
 
+  it('names the seller without doubling a period', () => {
+    render(
+      <OfferDialog
+        open
+        listing={{ ...listing, seller: { name: 'Lina K.' } }}
+        onClose={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    )
+    expect(screen.getByText(/Asking \$12 from Lina K\. The seller/)).toBeInTheDocument()
+    expect(screen.queryByText(/K\.\./)).not.toBeInTheDocument()
+  })
+
+  it('has no placeholder that looks like a filled-in amount', () => {
+    const { amount } = setup()
+    expect(amount).not.toHaveAttribute('placeholder')
+  })
+
   it('shows amount errors on submit and keeps focus on the field', async () => {
     const { user, amount, send, onSubmit } = setup()
     await user.click(send)
