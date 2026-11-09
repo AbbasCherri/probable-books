@@ -50,14 +50,6 @@ export function OfferNote({ offer, askingCents, busy, onAccept, onDecline, onCou
     statusText = `Meet ${buyer} at your pickup spot, then mark it sold.`
   if (offer.status === 'withdrawn') statusText = `${buyer} withdrew this offer.`
 
-  // "countered" has no stamp of its own; it is still waiting on the buyer.
-  const stamp =
-    offer.status === 'countered'
-      ? 'pending'
-      : offer.status === 'withdrawn'
-        ? 'declined'
-        : offer.status
-
   return (
     <article
       aria-label={`Offer of ${formatPrice(offer.amountCents)} from ${buyer}`}
@@ -83,7 +75,7 @@ export function OfferNote({ offer, askingCents, busy, onAccept, onDecline, onCou
             {shareOfAsking(offer.amountCents, askingCents)}, {shortDate(offer.createdAt)}
           </p>
         </div>
-        {!pending && <Stamp status={stamp} />}
+        {!pending && <Stamp status={offer.status} />}
       </div>
 
       {offer.message && (

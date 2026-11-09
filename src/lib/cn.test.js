@@ -11,6 +11,8 @@ describe('cn', () => {
     [['max-w-page', 'max-w-form'], 'max-w-form'],
     [['w-margin', 'w-full'], 'w-full'],
     [['animate-hl-draw', 'animate-stamp-land'], 'animate-stamp-land'],
+    [['z-sticky', 'z-modal'], 'z-modal'],
+    [['z-popover', 'z-10'], 'z-10'],
   ])('lets the later of conflicting tokens win: %j', (input, expected) => {
     expect(cn(...input)).toBe(expected)
   })

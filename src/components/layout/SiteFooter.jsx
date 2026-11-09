@@ -1,8 +1,9 @@
 import { Link, useMatches } from 'react-router'
+import { ReadingLight } from './ReadingLight'
 
 /**
  * Footer with the folio: the page number from the current route's `handle.folio` (see app/router.jsx).
- * The "Reading light" setting joins it when the Night reading add-on lands (section 10).
+ * Also holds the "Reading light" setting (section 10), as does the mobile menu.
  */
 export function SiteFooter() {
   const matches = useMatches()
@@ -34,6 +35,7 @@ export function SiteFooter() {
             <span className="font-serif text-ink-500 italic">p. {folio}</span>
           )}
         </nav>
+        <ReadingLight className="w-full" />
       </div>
     </footer>
   )
