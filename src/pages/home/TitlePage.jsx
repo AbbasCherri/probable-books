@@ -1,5 +1,9 @@
 import { CourseTab } from '@/components/annotate/CourseTab'
-import { ListingCardSkeleton } from '@/components/listing/ListingCardSkeleton'
+import { CourseLookup } from '@/components/layout/CourseLookup'
+import { cn } from '@/lib/cn'
+
+// Two fixed columns on phones so the row count never depends on when the condensed font loads.
+const tabRow = 'grid grid-cols-2 gap-3 sm:flex sm:flex-wrap'
 
 export function TitlePage({ courses, loading, contents }) {
   const popular = (courses ?? [])
@@ -12,24 +16,35 @@ export function TitlePage({ courses, loading, contents }) {
       <div className="lg:col-span-7">
         <h1
           id="home-title"
-          className="font-serif text-display-sm font-semibold tracking-tight text-ink-900 lg:text-display"
+          lang="en"
+          className="font-serif text-h1-sm font-semibold tracking-tight break-words hyphens-auto text-ink-900 sm:text-display-sm lg:text-display"
         >
           Everything on your syllabus, secondhand.
         </h1>
         <p className="mt-4 max-w-prose text-body text-ink-700">
           Textbooks, calculators and lab gear from students one year ahead of you.
         </p>
+        <CourseLookup className="mt-6 max-w-prose" />
         <div className="mt-8">
           <h2 className="font-serif text-h3 font-semibold text-ink-900">
             Popular this term
           </h2>
           {loading ? (
-            <ListingCardSkeleton className="mt-3 h-12" />
+            <div role="status" className="mt-3">
+              <span className="sr-only">Loading courses</span>
+              <ul aria-hidden="true" className={tabRow}>
+                {[0, 1, 2, 3].map((i) => (
+                  <li key={i}>
+                    <span className="block h-11 w-20 rounded-t-paper border-b border-paper-400 bg-paper-200" />
+                  </li>
+                ))}
+              </ul>
+            </div>
           ) : (
-            <ul className="mt-3 flex flex-wrap gap-3">
+            <ul className={cn('mt-3', tabRow)}>
               {popular.map((c) => (
                 <li key={c.code}>
-                  <CourseTab code={c.code} asLink />
+                  <CourseTab code={c.code} asLink className="h-11" />
                 </li>
               ))}
             </ul>
