@@ -86,7 +86,7 @@ function SheetPanel({ onClose, title, footer, children, className }) {
         // The live drag offset is the one computed value; it follows the finger frame by frame.
         style={dragging ? { '--drag-y': `${dragY}px` } : undefined}
         className={cn(
-          'absolute inset-x-0 bottom-0 flex max-h-5/6 flex-col rounded-t-dialog border border-b-0 border-paper-400 bg-paper-50 shadow-stack outline-none',
+          'absolute inset-x-0 bottom-0 flex max-h-sheet flex-col rounded-t-dialog border border-b-0 border-paper-400 bg-paper-50 shadow-stack outline-none',
           dragging
             ? 'translate-y-(--drag-y)'
             : 'motion-safe:transition-transform motion-safe:duration-200 motion-safe:ease-out',

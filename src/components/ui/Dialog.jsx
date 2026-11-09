@@ -51,8 +51,8 @@ export function Dialog({ open, onClose, title, className, children }) {
           }
         }}
         className={cn(
-          // Same height cap as Sheet; pb-safe-6 clears the home indicator on phones.
-          'relative max-h-5/6 w-full overflow-y-auto rounded-t-dialog border border-paper-400 bg-paper-50 px-5 pt-3 pb-safe-6 shadow-stack outline-none sm:max-w-md sm:rounded-dialog sm:px-6',
+          // pb-safe-6 clears the home indicator on phones.
+          'relative max-h-11/12 w-full overflow-y-auto rounded-t-dialog border border-paper-400 bg-paper-50 px-5 pt-3 pb-safe-6 shadow-stack outline-none sm:max-w-md sm:rounded-dialog sm:px-6',
           className,
         )}
       >

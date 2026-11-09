@@ -251,6 +251,11 @@
   }
 }
 
+/* Bottom sheets stop at 85% of the visible screen height, so the page above stays in view. */
+@utility max-h-sheet {
+  max-height: 85dvh;
+}
+
 /* Filter rail beside the results (Browse, from lg). */
 @utility grid-rail {
   grid-template-columns: 17rem minmax(0, 1fr);
