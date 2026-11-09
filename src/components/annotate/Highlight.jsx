@@ -1,10 +1,11 @@
 import { cn } from '@/lib/cn'
 
+// Full class names so Tailwind finds them (the hl utilities live in src/styles/index.css).
 const COLORS = {
-  yellow: 'var(--color-hl-yellow)',
-  green: 'var(--color-hl-green)',
-  blue: 'var(--color-hl-blue)',
-  pink: 'var(--color-hl-pink)',
+  yellow: 'hl-yellow',
+  green: 'hl-green',
+  blue: 'hl-blue',
+  pink: 'hl-pink',
 }
 
 /**
@@ -14,18 +15,14 @@ const COLORS = {
  * `animate` draws it left to right (300ms); use it only in answer to an action, like a search running.
  */
 export function Highlight({ color = 'yellow', animate = false, className, children }) {
-  const fill = COLORS[color] ?? COLORS.yellow
   return (
     <mark
       className={cn(
-        'rounded-[0.2em_0.5em_0.25em_0.45em] bg-transparent box-decoration-clone bg-no-repeat px-[0.12em] text-on-mark',
-        animate && 'hl-draw',
+        'hl px-0.5',
+        COLORS[color] ?? COLORS.yellow,
+        animate && 'motion-safe:animate-hl-draw',
         className,
       )}
-      style={{
-        backgroundImage: `linear-gradient(${fill}, ${fill})`,
-        backgroundSize: '100% 100%',
-      }}
     >
       {children}
     </mark>
