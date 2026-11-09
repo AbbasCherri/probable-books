@@ -5,7 +5,9 @@ import { TextField } from './TextField'
 
 describe('TextField', () => {
   it('wires label, hint and error', () => {
-    render(<TextField label="Email" hint="Your school address." error="Enter an email." />)
+    render(
+      <TextField label="Email" hint="Your school address." error="Enter an email." />,
+    )
     const input = screen.getByRole('textbox', { name: 'Email' })
     expect(input).toHaveAccessibleDescription('Your school address. Enter an email.')
     expect(input).toHaveAttribute('aria-invalid', 'true')

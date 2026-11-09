@@ -31,7 +31,13 @@ describe('Popover', () => {
       </Popover>,
     )
     const pop = screen.getByRole('menu', { name: 'Actions' })
-    expect(pop).toHaveClass('absolute', 'top-full', 'z-popover', 'bg-paper-50', 'shadow-stack')
+    expect(pop).toHaveClass(
+      'absolute',
+      'top-full',
+      'z-popover',
+      'bg-paper-50',
+      'shadow-stack',
+    )
     expect(pop).toHaveClass('left-0')
   })
 

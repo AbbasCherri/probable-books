@@ -38,8 +38,7 @@ export function Button({
   className,
   ...props
 }) {
-  const unnamedIcon =
-    size === 'icon' && !props['aria-label'] && !props['aria-labelledby']
+  const unnamedIcon = size === 'icon' && !props['aria-label'] && !props['aria-labelledby']
   useEffect(() => {
     if (import.meta.env.DEV && unnamedIcon) {
       // eslint-disable-next-line no-console

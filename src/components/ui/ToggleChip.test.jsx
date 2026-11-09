@@ -56,7 +56,12 @@ describe('RadioCard', () => {
     const calcs = screen.getByRole('radio', { name: /Calculators/ })
     expect(books).toBeChecked()
     const card = (radio) => radio.closest('label')
-    expect(card(books)).toHaveClass('bg-pen-50', 'border-ink-900', 'ring-1', 'ring-ink-900')
+    expect(card(books)).toHaveClass(
+      'bg-pen-50',
+      'border-ink-900',
+      'ring-1',
+      'ring-ink-900',
+    )
     expect(card(calcs)).toHaveClass('bg-paper-50', 'border-paper-400')
     expect(card(calcs)).toHaveClass('min-h-11', 'has-focus-visible:outline-2')
     await user.click(screen.getByText('Calculators'))
@@ -74,8 +79,8 @@ describe('RadioCard', () => {
 
   it('ties its description to the radio', () => {
     render(<Picker />)
-    expect(screen.getByRole('radio', { name: /Calculators/ })).toHaveAccessibleDescription(
-      'Graphing or scientific',
-    )
+    expect(
+      screen.getByRole('radio', { name: /Calculators/ }),
+    ).toHaveAccessibleDescription('Graphing or scientific')
   })
 })

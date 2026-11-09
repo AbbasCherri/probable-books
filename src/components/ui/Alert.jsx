@@ -9,7 +9,12 @@ const TONES = {
     box: 'border-redpen-600 bg-redpen-50',
     mark: 'text-redpen-600',
   },
-  info: { role: 'status', icon: Info, box: 'border-pen-600 bg-pen-50', mark: 'text-pen-600' },
+  info: {
+    role: 'status',
+    icon: Info,
+    box: 'border-pen-600 bg-pen-50',
+    mark: 'text-pen-600',
+  },
   success: {
     role: 'status',
     icon: CircleCheck,
@@ -46,7 +51,9 @@ export function Alert({ tone = 'info', title, action, role, className, children 
       />
       <div className="min-w-0 flex-1">
         {title && <p className="font-semibold">{title}</p>}
-        {children && <div className={cn(title && 'mt-0.5', 'text-ink-700')}>{children}</div>}
+        {children && (
+          <div className={cn(title && 'mt-0.5', 'text-ink-700')}>{children}</div>
+        )}
         {action && <div className="mt-2 flex flex-wrap gap-3">{action}</div>}
       </div>
     </div>

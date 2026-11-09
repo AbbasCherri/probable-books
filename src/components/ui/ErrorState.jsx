@@ -67,11 +67,7 @@ function Actions({ onRetry, retryLabel, secondary, page = false }) {
         </Button>
       )}
       {secondary && (
-        <Button
-          as={Link}
-          to={secondary.to}
-          variant={page ? 'outline' : 'link'}
-        >
+        <Button as={Link} to={secondary.to} variant={page ? 'outline' : 'link'}>
           {secondary.label}
         </Button>
       )}

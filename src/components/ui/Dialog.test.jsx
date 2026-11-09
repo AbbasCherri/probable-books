@@ -23,7 +23,12 @@ function Harness(props) {
       <button type="button" onClick={() => setOpen(true)}>
         Delete
       </button>
-      <Dialog open={open} onClose={() => setOpen(false)} title="Delete this listing?" {...props}>
+      <Dialog
+        open={open}
+        onClose={() => setOpen(false)}
+        title="Delete this listing?"
+        {...props}
+      >
         <button type="button" onClick={() => setOpen(false)}>
           Keep it
         </button>
@@ -73,7 +78,12 @@ describe('Dialog', () => {
           <button type="button" onClick={() => setOpen(true)}>
             Open
           </button>
-          <Dialog open={open} onClose={() => setOpen(false)} title="Mark sold?" describedBy="why">
+          <Dialog
+            open={open}
+            onClose={() => setOpen(false)}
+            title="Mark sold?"
+            describedBy="why"
+          >
             <p id="why">Buyers with offers are told.</p>
           </Dialog>
         </>

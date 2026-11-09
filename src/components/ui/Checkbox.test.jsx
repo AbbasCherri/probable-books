@@ -40,13 +40,17 @@ describe('Checkbox', () => {
       />,
     )
     const box = screen.getByRole('checkbox', { name: 'I agree' })
-    expect(box).toHaveAccessibleDescription('You can change this later. Tick this to go on.')
+    expect(box).toHaveAccessibleDescription(
+      'You can change this later. Tick this to go on.',
+    )
     expect(box).toHaveAttribute('aria-invalid', 'true')
     expect(document.getElementById('terms-error')).toHaveAttribute('data-field-error')
   })
 
   it('passes native props through and merges className on the wrapper', () => {
-    render(<Checkbox label="Textbooks" name="category" value="textbook" className="mt-2" />)
+    render(
+      <Checkbox label="Textbooks" name="category" value="textbook" className="mt-2" />,
+    )
     const box = screen.getByRole('checkbox')
     expect(box).toHaveAttribute('name', 'category')
     expect(box).toHaveAttribute('value', 'textbook')
