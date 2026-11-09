@@ -2,7 +2,6 @@ import { expect, test } from '@playwright/test'
 import {
   collectConsole,
   expectPageQuality,
-  expectTargets44,
   gotoStable,
   setTheme,
   shot,
@@ -39,23 +38,6 @@ test.beforeEach(async ({ context }) => {
 const isWide = (page) => page.viewportSize().width >= 1024
 const h1 = (page) => page.getByRole('heading', { level: 1 })
 const offerButton = (page) => page.getByRole('button', { name: 'Make an offer' })
-
-// Known issues in shared components, reported separately (not this page's to fix):
-// - SiteHeader/SiteFooter have targets under 44px (logo, Sell, Get a card, Sign out).
-//   Remove SHARED_CHROME once the shared header/footer target fix merges.
-const SHARED_CHROME = ['body header', 'body footer']
-// - ListingCard's "+n courses" chip in the related shelf is text-on-mark on bg-paper-200,
-//   unreadable in Night. Remove MORE_CHIP once the foundation branch's chip fix merges.
-const MORE_CHIP = '[aria-labelledby="related-heading"] article .bg-paper-200'
-
-/** expectPageQuality, scoped past the shared-component issues above. */
-async function expectQuality(page, log) {
-  await expectPageQuality(page, log, {
-    targets: false,
-    axeOptions: { exclude: [MORE_CHIP] },
-  })
-  await expectTargets44(page, { strict: true, exclude: SHARED_CHROME })
-}
 
 /** Mock API delay for this test (registered after the beforeEach '0', so it wins). */
 async function setLatency(context, ms) {
@@ -97,7 +79,7 @@ test.describe('active listing, open to offers', () => {
     const shelf = page.getByRole('region', { name: 'Also for CHEM 201' })
     await expect(shelf).toBeVisible()
     await expect(shelf.getByRole('link', { name: 'Lab coat, size M' })).toHaveCount(0)
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await shot(page, testInfo, 'listing-open-signed-out-day')
 
     await offerButton(page).click()
@@ -127,7 +109,7 @@ test.describe('active listing, open to offers', () => {
     const amount = dialog.getByLabel('Your offer, in dollars')
     await expect(amount).toBeFocused()
     await expect(amount).toHaveAttribute('inputmode', 'decimal')
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await shot(page, testInfo, 'listing-offer-dialog-day')
 
     const send = dialog.getByRole('button', { name: 'Send offer' })
@@ -163,7 +145,7 @@ test.describe('active listing, open to offers', () => {
     const sent = page.getByText(/You offered \$10\.50/)
     await expect(sent).toBeFocused()
     await expect(offerButton(page)).toBeDisabled()
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
 
     await page.getByRole('link', { name: 'See offers you sent' }).click()
     await expect(page).toHaveURL(/\/dashboard\?tab=sent$/)
@@ -179,7 +161,7 @@ test.describe('active listing, open to offers', () => {
     await expect(offerButton(page)).toBeDisabled()
     // The disabled button says why: the note about the offer already waiting.
     await expect(offerButton(page)).toHaveAccessibleDescription(/You offered \$40/)
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
   })
 
   test('the button is never enabled while your offers are still loading', async ({
@@ -228,7 +210,7 @@ test.describe('closed listings', () => {
     await expect(page.getByText('Reserved', { exact: true }).first()).toBeVisible()
     await expect(offerButton(page)).toBeDisabled()
     await expect(page.getByText(/accepted an offer/)).toBeVisible()
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
   })
 
   test('sold: SOLD stamp over the gallery and the reason', async ({ page }, testInfo) => {
@@ -242,7 +224,7 @@ test.describe('closed listings', () => {
     // Nothing left to arrange: no Contact seller, no email, even signed in.
     await expect(page.getByRole('link', { name: 'Contact seller' })).toHaveCount(0)
     await expect(page.getByText('sara@probable.books')).toHaveCount(0)
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await shot(page, testInfo, 'listing-sold-day')
   })
 
@@ -251,7 +233,7 @@ test.describe('closed listings', () => {
     await expect(page.getByText('Firm price', { exact: true }).first()).toBeVisible()
     await expect(offerButton(page)).toBeDisabled()
     await expect(page.getByText(/isn.t taking offers/)).toBeVisible()
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
   })
 })
 
@@ -267,7 +249,7 @@ test.describe('own listing', () => {
       `/listings/${ID.mine}/edit`,
     )
     await expect(page.getByRole('link', { name: 'Contact seller' })).toHaveCount(0)
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await shot(page, testInfo, 'listing-owner-day')
 
     const markSold = page.getByRole('button', { name: 'Mark as sold' })
@@ -280,7 +262,7 @@ test.describe('own listing', () => {
 
     await markSold.click()
     dialog = page.getByRole('dialog', { name: 'Mark this as sold?' })
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await dialog.getByRole('button', { name: 'Mark as sold' }).click()
     await expect(dialog).toHaveCount(0)
     await expect(page.getByRole('status').getByText(/Marked as sold/)).toBeVisible()
@@ -289,7 +271,7 @@ test.describe('own listing', () => {
     ).toBeVisible()
     await expect(markSold).toBeDisabled()
     await expect(page.getByText(/You marked this sold/)).toBeFocused()
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
   })
 
   test('owner sees their draft', async ({ page }) => {
@@ -297,7 +279,7 @@ test.describe('own listing', () => {
     const log = await open(page, ID.draft)
     await expect(h1(page)).toHaveText(/University Physics/)
     await expect(page.getByText(/Only you can see this/)).toBeVisible()
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
   })
 })
 
@@ -317,7 +299,7 @@ test.describe('not found', () => {
       await expect(
         page.getByRole('main').getByRole('link', { name: 'Browse listings' }),
       ).toHaveAttribute('href', '/browse')
-      await expectQuality(page, log)
+      await expectPageQuality(page, log)
     })
   }
 })
@@ -350,7 +332,7 @@ test.describe('gallery', () => {
     await buttons.nth(3).click()
     await expect(main).toHaveAttribute('alt', /photo 4 of 6/)
     await expect(gallery.locator('[aria-live="polite"]')).toHaveText(/^Photo 4 of 6: /)
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await shot(page, testInfo, 'listing-six-photos-day')
   })
 
@@ -359,7 +341,7 @@ test.describe('gallery', () => {
     const gallery = page.getByTestId('gallery')
     await expect(gallery.getByText('Organic Chemistry study guide')).toBeVisible()
     await expect(gallery.getByRole('button')).toHaveCount(0)
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
   })
 
   test('one photo: no controls', async ({ page }) => {
@@ -374,7 +356,7 @@ test.describe('long content', () => {
   for (const id of [ID.longTitle, ID.longWord]) {
     test(`${id}: no sideways scroll`, async ({ page }, testInfo) => {
       const log = await open(page, id)
-      await expectQuality(page, log)
+      await expectPageQuality(page, log)
       if (id === ID.longTitle) await shot(page, testInfo, 'listing-long-title-day')
     })
   }
@@ -430,7 +412,7 @@ test.describe('loading', () => {
     ).toBeVisible({
       timeout: 10_000,
     })
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     // Still loading: the checks above ran against the skeleton, not the finished page.
     await expect(page.getByTestId('gallery-skeleton')).toBeVisible()
   })
@@ -470,7 +452,7 @@ test('a failed load says so and Retry recovers', async ({ page, context }, testI
   await context.addInitScript(() => localStorage.setItem('pb.mock.fail', 'getListing'))
   const log = await open(page, ID.open)
   await expect(h1(page)).toHaveText(/didn.t print/)
-  await expectQuality(page, log)
+  await expectPageQuality(page, log)
   await shot(page, testInfo, 'listing-error-day')
   await page.evaluate(() => localStorage.removeItem('pb.mock.fail'))
   await page.getByRole('button', { name: 'Retry' }).click()
@@ -487,24 +469,24 @@ test.describe('night', () => {
     await signIn(page)
     const log = await open(page, ID.sixPhotos)
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'night')
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await shot(page, testInfo, 'listing-open-night')
     await offerButton(page).click()
     await expect(page.getByRole('dialog')).toBeVisible()
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await shot(page, testInfo, 'listing-offer-dialog-night')
   })
 
   test('sold, owner and not-found states', async ({ page }, testInfo) => {
     await signIn(page)
     let log = await open(page, ID.sold)
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await shot(page, testInfo, 'listing-sold-night')
     log = await open(page, ID.mine)
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await shot(page, testInfo, 'listing-owner-night')
     log = await open(page, 'lst_nope')
-    await expectQuality(page, log)
+    await expectPageQuality(page, log)
     await shot(page, testInfo, 'listing-not-found-night')
   })
 })
