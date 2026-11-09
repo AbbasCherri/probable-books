@@ -165,3 +165,29 @@ test('paper grain shows, fainter at night, and never blocks clicks', async ({
   expect(strengths.night).toBeGreaterThan(0.2)
   expect(strengths.night).toBeLessThan(strengths.day)
 })
+
+// The first page's code arrives late (slow network): the loading frame must not jump the layout
+// when the page replaces it. Cumulative layout shift from navigation start, Core Web Vitals
+// "good" is 0.1; we hold the fallback to 0.05. A short page and a tall one. (Pages whose own
+// loading states shift, like / and /dashboard today, belong in their page specs.)
+for (const { path, chunk } of [
+  { path: '/listings/lst_001', chunk: /\/src\/pages\/listing-details\// },
+  { path: '/browse', chunk: /\/src\/pages\/browse\/BrowsePage/ },
+]) {
+  test(`no layout shift while ${path} loads slowly`, async ({ page }) => {
+    await page.addInitScript(() => {
+      window.__cls = 0
+      new PerformanceObserver((list) => {
+        for (const entry of list.getEntries())
+          if (!entry.hadRecentInput) window.__cls += entry.value
+      }).observe({ type: 'layout-shift', buffered: true })
+    })
+    await page.route(chunk, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await route.continue()
+    })
+    await gotoStable(page, path)
+    const cls = await page.evaluate(() => window.__cls)
+    expect(cls, 'cumulative layout shift').toBeLessThan(0.05)
+  })
+}
