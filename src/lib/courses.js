@@ -66,3 +66,18 @@ export function tabColorFor(code) {
   for (const ch of dept) h = (h * 31 + ch.charCodeAt(0)) >>> 0
   return TAB_COLORS[h % TAB_COLORS.length]
 }
+
+// Full class names so Tailwind finds them. Text on these fills uses text-on-mark.
+export const TAB_CLASSES = {
+  sage: 'bg-tab-sage',
+  sky: 'bg-tab-sky',
+  butter: 'bg-tab-butter',
+  rose: 'bg-tab-rose',
+  lilac: 'bg-tab-lilac',
+  sand: 'bg-tab-sand',
+}
+
+/** The department's tab fill, for a CourseTab or anything that should match it. */
+export function tabClassFor(code) {
+  return TAB_CLASSES[tabColorFor(code)]
+}

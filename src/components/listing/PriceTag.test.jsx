@@ -7,7 +7,12 @@ const price = () => screen.getByText('$45')
 describe('PriceTag', () => {
   it('prints the price in tabular figures with the savings under it', () => {
     render(<PriceTag cents={4500} retailCents={18900} />)
-    expect(price()).toHaveClass('font-serif', 'tabular-nums', 'text-price', 'text-ink-900')
+    expect(price()).toHaveClass(
+      'font-serif',
+      'tabular-nums',
+      'text-price',
+      'text-ink-900',
+    )
     expect(screen.getByText('76% under retail')).toBeInTheDocument()
   })
 
