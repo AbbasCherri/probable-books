@@ -5,7 +5,16 @@ import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
 
 export default [
-  { ignores: ['dist', 'node_modules'] },
+  {
+    ignores: [
+      'dist',
+      'node_modules',
+      'e2e-artifacts',
+      'test-results',
+      'playwright-report',
+      '.claude',
+    ],
+  },
   js.configs.recommended,
   {
     files: ['**/*.{js,jsx}'],
@@ -28,7 +37,12 @@ export default [
     },
   },
   {
-    files: ['vite.config.js', 'eslint.config.js'],
+    files: ['vite.config.js', 'eslint.config.js', 'playwright.config.js'],
     languageOptions: { globals: globals.node },
+  },
+  {
+    // Playwright specs run in Node; page.evaluate() callbacks run in the browser.
+    files: ['e2e/**/*.js'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
 ]

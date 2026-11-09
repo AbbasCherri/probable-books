@@ -6,8 +6,18 @@ GitHub Flow. `main` is always working and deployable.
 
 - No direct pushes to `main`; open a pull request. Squash merge only.
 - 1 approval minimum. PRs touching `src/components/`, `src/styles/`, `src/lib/`, `src/services/` or `src/app/` need **2** approvals and go in their own PR.
-- `npm run lint` and `npm run build` must pass (CI checks both).
+- `npm run lint`, `npm run format:check`, `npm test` and `npm run build` must pass, and the
+  e2e smoke (`npm run e2e`) must run; CI checks all of them. Write the test first.
 - Review within 24 hours. Rotation: Abbas reviews Wazan, Wazan reviews Youssef, Youssef reviews Ayk, Ayk reviews Abbas.
+
+## Scripts
+
+- `npm test` / `npm run test:watch`: Vitest unit and component tests (`src/**/*.test.{js,jsx}`).
+- `npm run e2e`: Playwright across the device matrix; pick devices with `-- --project=<name>`.
+  Page specs call `expectPageQuality(page, log)` (hard gate: one h1, no overflow, no serious
+  axe issues, 44x44px targets, no console errors). The smoke spec only hard-fails on crashes and
+  reports the rest unless `E2E_STRICT=1`.
+- `npm run format:check`: Prettier check; `npm run format` fixes.
 
 ## Branches
 
