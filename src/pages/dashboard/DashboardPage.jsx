@@ -44,16 +44,16 @@ export default function DashboardPage() {
   const [busyId, setBusyId] = useState(null)
   const [askDeclineFor, setAskDeclineFor] = useState(null)
   const [toDelete, setToDelete] = useState(null)
-  const [focusTitle, setFocusTitle] = useState(false)
+  const focusTitle = useRef(false)
   const titleRef = useRef(null)
 
   // After a delete the row (and its menu button) is gone: put focus on the page title. Runs
   // after the dialog's focus trap has handed focus back, so this wins.
   useEffect(() => {
-    if (!focusTitle || toDelete) return
+    if (!focusTitle.current || toDelete) return
+    focusTitle.current = false
     titleRef.current?.focus()
-    setFocusTitle(false)
-  }, [focusTitle, toDelete])
+  }, [toDelete])
 
   const listings = listingsQ.data ?? []
   const received = receivedQ.data ?? []
@@ -157,7 +157,7 @@ export default function DashboardPage() {
       'Listing deleted.',
     )
     if (ok) {
-      setFocusTitle(true)
+      focusTitle.current = true
       setToDelete(null)
     }
   }
