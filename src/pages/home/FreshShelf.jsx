@@ -27,7 +27,7 @@ export function FreshShelf({ listings, loading }) {
       {loading ? (
         <div className="mt-6 flex gap-4 overflow-hidden">
           {[0, 1, 2].map((i) => (
-            <ListingCardSkeleton key={i} className="w-[78%] shrink-0 sm:w-64" />
+            <ListingCardSkeleton key={i} className="w-4/5 shrink-0 sm:w-64" />
           ))}
         </div>
       ) : listings.length === 0 ? (
@@ -42,7 +42,7 @@ export function FreshShelf({ listings, loading }) {
             className="mt-6 flex snap-x snap-mandatory gap-4 overflow-x-auto pb-4"
           >
             {listings.map((l) => (
-              <li key={l.id} className="w-[78%] shrink-0 snap-start sm:w-64">
+              <li key={l.id} className="w-4/5 shrink-0 snap-start sm:w-64">
                 <ListingCard listing={l} variant="card" />
               </li>
             ))}
@@ -61,7 +61,7 @@ export function FreshShelf({ listings, loading }) {
                 aria-label="Previous listings"
                 onClick={() => scrollBy(-1)}
               >
-                <ChevronLeft size={20} strokeWidth={1.5} aria-hidden="true" />
+                <ChevronLeft strokeWidth={1.5} aria-hidden="true" className="size-5" />
               </button>
               <button
                 type="button"
@@ -69,7 +69,7 @@ export function FreshShelf({ listings, loading }) {
                 aria-label="Next listings"
                 onClick={() => scrollBy(1)}
               >
-                <ChevronRight size={20} strokeWidth={1.5} aria-hidden="true" />
+                <ChevronRight strokeWidth={1.5} aria-hidden="true" className="size-5" />
               </button>
             </div>
           </div>

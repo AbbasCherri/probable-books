@@ -48,13 +48,12 @@ export default function BrowsePage() {
   const active = getActiveFilters(filters)
   const restrictive = mostRestrictive(filters, total)
 
-  // New page of results: start at the top of the list, not mid-scroll. Skip the first render.
-  const firstRender = useRef(true)
+  // New page of results: start at the top of the list, not mid-scroll. Only when the page number
+  // really changed (not on mount, including StrictMode's second effect run).
+  const shownPage = useRef(filters.page)
   useEffect(() => {
-    if (firstRender.current) {
-      firstRender.current = false
-      return
-    }
+    if (shownPage.current === filters.page) return
+    shownPage.current = filters.page
     window.scrollTo({ top: 0 })
     // Keyboard users land at the new results, not back at the pagination they just used.
     document.getElementById('browse-title')?.focus({ preventScroll: true })
@@ -125,11 +124,12 @@ export default function BrowsePage() {
 
   return (
     <PageShell chapter="Index">
-      <div className="py-8 lg:grid lg:grid-cols-[17rem_minmax(0,1fr)] lg:gap-10">
+      <div className="py-8 lg:grid lg:grid-rail lg:gap-10">
         {isWide && (
+          // A sticky rail as tall as the screen; its padding keeps 1rem clear above and below.
           <aside
             aria-label="Filters"
-            className="sticky top-4 max-h-[calc(100dvh-2rem)] self-start overflow-y-auto p-1 pr-3"
+            className="sticky top-0 -mt-3 max-h-dvh self-start overflow-y-auto py-4 pr-3 pl-1"
           >
             {panel}
           </aside>
