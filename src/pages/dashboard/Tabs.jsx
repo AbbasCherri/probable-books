@@ -46,10 +46,10 @@ export function Tabs({ label, tabs, value, onChange, idPrefix = 'tab' }) {
             onClick={() => onChange(tab.id)}
             onKeyDown={(e) => onKeyDown(e, i)}
             className={cn(
-              '-mb-px min-h-12 shrink-0 border-b-3 px-3.5 whitespace-nowrap transition-colors duration-150 ease-out',
+              '-mb-px min-h-12 shrink-0 border-b-3 px-3.5 whitespace-nowrap transition-paper',
               selected
                 ? 'border-ink-900 font-semibold text-ink-900'
-                : 'border-transparent font-medium text-ink-500 hover:bg-paper-200 hover:text-ink-900',
+                : 'border-transparent text-ink-500 hover:bg-paper-200 hover:text-ink-900',
             )}
           >
             {tab.label}

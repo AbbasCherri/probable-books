@@ -6,7 +6,7 @@ import { cn } from '@/lib/cn'
  */
 export function FootnoteRef({ id, n = 1, className }) {
   return (
-    <sup className={cn('ml-0.5 font-sans text-xs font-semibold', className)}>
+    <sup className={cn('ml-0.5 font-sans text-caption font-semibold', className)}>
       <a
         href={`#fn-${id}`}
         id={`fnref-${id}`}
@@ -27,7 +27,7 @@ export function Footnote({ id, n = 1, className, children }) {
   return (
     <p
       id={`fn-${id}`}
-      className={cn('border-t border-paper-300 pt-2 text-sm text-ink-700', className)}
+      className={cn('border-t border-paper-300 pt-2 text-small text-ink-700', className)}
     >
       <sup className="mr-1 font-semibold text-pen-600">{n}</sup>
       {children}{' '}

@@ -35,7 +35,7 @@ export function Dialog({ open, onClose, title, className, children }) {
     <div className="fixed inset-0 z-40 flex items-end justify-center sm:items-center sm:p-6">
       <div
         aria-hidden="true"
-        className="absolute inset-0 bg-ink-900/40"
+        className="absolute inset-0 bg-scrim/40"
         onClick={onClose}
       />
       <div
@@ -50,9 +50,9 @@ export function Dialog({ open, onClose, title, className, children }) {
             onClose()
           }
         }}
-        style={{ paddingBottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
         className={cn(
-          'relative max-h-11/12 w-full overflow-y-auto rounded-t-dialog border border-paper-400 bg-paper-50 px-5 pt-3 shadow-stack outline-none sm:max-w-md sm:rounded-dialog sm:px-6',
+          // pb-safe-6 clears the home indicator on phones.
+          'relative max-h-11/12 w-full overflow-y-auto rounded-t-dialog border border-paper-400 bg-paper-50 px-5 pt-3 pb-safe-6 shadow-stack outline-none sm:max-w-md sm:rounded-dialog sm:px-6',
           className,
         )}
       >
@@ -66,9 +66,9 @@ export function Dialog({ open, onClose, title, className, children }) {
           <button
             type="button"
             onClick={onClose}
-            className="-mr-2 grid size-11 shrink-0 place-items-center rounded-paper text-ink-900 transition-colors duration-150 ease-out hover:bg-paper-200"
+            className="-mr-2 grid size-11 shrink-0 place-items-center rounded-paper text-ink-900 transition-paper hover:bg-paper-200"
           >
-            <X size={20} strokeWidth={1.5} aria-hidden="true" />
+            <X strokeWidth={1.5} aria-hidden="true" className="size-5" />
             <span className="sr-only">Close</span>
           </button>
         </div>

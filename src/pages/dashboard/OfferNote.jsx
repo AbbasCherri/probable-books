@@ -71,17 +71,15 @@ export function OfferNote({ offer, askingCents, busy, onAccept, onDecline, onCou
           <p className="flex flex-wrap items-baseline gap-x-2.5">
             <span
               className={cn(
-                'font-serif text-3xl leading-tight font-semibold tabular-nums',
+                'font-serif text-h2 leading-tight font-semibold tabular-nums',
                 declined ? 'text-ink-500' : 'text-pen-600',
               )}
             >
               {formatPrice(offer.amountCents)}
             </span>
-            <span className={cn('font-medium', declined && 'text-ink-500')}>
-              from {buyer}
-            </span>
+            <span className={cn(declined && 'text-ink-500')}>from {buyer}</span>
           </p>
-          <p className="text-sm text-ink-500">
+          <p className="text-small text-ink-500">
             {shareOfAsking(offer.amountCents, askingCents)}, {shortDate(offer.createdAt)}
           </p>
         </div>

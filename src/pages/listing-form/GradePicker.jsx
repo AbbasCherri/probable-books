@@ -16,7 +16,7 @@ export function GradePicker({ value, onChange, error }) {
       className="min-w-0"
       aria-describedby={error ? errorId : 'listing-condition-desc'}
     >
-      <legend className="mb-2 font-medium">Grade</legend>
+      <legend className="mb-2">Grade</legend>
       <FieldError id={errorId}>{error}</FieldError>
       <div
         className={cn(
@@ -31,7 +31,7 @@ export function GradePicker({ value, onChange, error }) {
             <label
               key={c.value}
               className={cn(
-                'flex min-h-15 cursor-pointer items-center gap-3 rounded-paper border px-3 py-2 transition-colors duration-150 ease-out sm:min-w-28 sm:flex-1',
+                'flex min-h-15 cursor-pointer items-center gap-3 rounded-paper border px-3 py-2 transition-paper sm:min-w-28 sm:flex-1',
                 'has-focus-visible:outline-2 has-focus-visible:outline-offset-2 has-focus-visible:outline-pen-600',
                 selected
                   ? 'border-ink-900 bg-pen-50 shadow-stack ring-1 ring-ink-900 ring-inset'
@@ -49,7 +49,7 @@ export function GradePicker({ value, onChange, error }) {
               />
               <span className="flex flex-col gap-0.5">
                 <ConditionGrade condition={c.value} size="sm" />
-                <span className="text-sm text-ink-500 sm:hidden">{c.description}</span>
+                <span className="text-small text-ink-500 sm:hidden">{c.description}</span>
               </span>
             </label>
           )

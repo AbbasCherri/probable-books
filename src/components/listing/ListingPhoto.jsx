@@ -32,10 +32,10 @@ export function ListingPhoto({ listing, className, loading = 'lazy', sizes }) {
         className,
       )}
     >
-      <span className="text-xs font-semibold text-ink-500">
+      <span className="text-caption font-semibold text-ink-500">
         {CATEGORIES[listing.category]?.label ?? 'Listing'}
       </span>
-      <span className="line-clamp-2 border-b border-paper-300 pb-1 font-serif text-sm leading-snug text-ink-700">
+      <span className="line-clamp-2 border-b border-paper-300 pb-1 font-serif text-small leading-snug text-ink-700">
         {listing.title}
       </span>
       <span className="border-b border-paper-300 pt-2" />

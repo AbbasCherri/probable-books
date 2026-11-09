@@ -12,15 +12,16 @@ import { AuthProvider } from '@/context/AuthContext'
  *   })
  * Options:
  *   routes   extra route objects (e.g. a stub `/listings/:id` to land on after navigate())
+ *   children child routes of `ui`, for a layout that renders an <Outlet /> (RootLayout)
  *   auth     wrap in <AuthProvider> (it reads pb.session through the mock API, so seed
  *            localStorage first and await what the component renders once it is ready)
  * Returns Testing Library's render result plus `router` and a userEvent `user`.
  */
 export function renderWithRouter(
   ui,
-  { route = '/', path = '/', routes = [], auth = false } = {},
+  { route = '/', path = '/', routes = [], children, auth = false } = {},
 ) {
-  const router = createMemoryRouter([{ path, element: ui }, ...routes], {
+  const router = createMemoryRouter([{ path, element: ui, children }, ...routes], {
     initialEntries: [route],
   })
   let tree = (
