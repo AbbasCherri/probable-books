@@ -8,3 +8,10 @@ playwright-report
 
 # Claude Code agent worktrees
 .claude/
+
+# Backend and local env
+.env
+server/.env
+server/node_modules
+*.log
+coverage
