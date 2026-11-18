@@ -13,13 +13,18 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test": "vitest run --passWithNoTests",
-    "migrate": "node -e \"console.log('migrate: not implemented yet')\"",
-    "seed": "node -e \"console.log('seed: not implemented yet')\""
+    "migrate": "node src/db/migrate.js",
+    "seed": "node src/db/seed/seed.js",
+    "test:schema": "node tests/schema.check.mjs",
+    "migrate:down:dev": "node src/db/migrate.js --down-dev",
+    "seed:reset": "node src/db/seed/seed.js --reset"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.3",
     "cloudinary": "^2.11.0",
     "cors": "^2.8.6",
+    "dotenv": "^18.0.10",
     "express": "^5.3.0",
     "express-rate-limit": "^8.7.4",
     "helmet": "^8.3.0",
@@ -31,7 +36,9 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.16",
     "@eslint/js": "^10.0.1",
+    "esbuild": "^0.28.2",
     "eslint": "^10.15.0",
     "globals": "^17.14.0",
     "prettier": "^3.10.1",
