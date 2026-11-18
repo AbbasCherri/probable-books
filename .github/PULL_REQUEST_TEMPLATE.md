@@ -20,3 +20,15 @@ Phone (360px) first, then 768px and 1280px.
 - [ ] prefers-reduced-motion respected
 - [ ] `npm run lint` and `npm run build` pass; no `console.log`
 - [ ] Touches `src/components/`, `src/styles/`, `src/lib/`, `src/services/` or `src/app/`? Then it is its own PR and needs 2 approvals
+
+## If this touches server/
+
+- [ ] Endpoint(s) and requirements section: <!-- e.g. GET /listings, 5.2 -->
+- [ ] Swagger block added or updated
+- [ ] Tests cover success and every listed failure
+- [ ] Messages match the requirements document exactly
+- [ ] Any new migration is a new file; no merged migration was edited
+- [ ] No secrets, `.env` files or personal data
+- [ ] Contract changed? Then the requirements PDF is updated and the other three teammates are tagged
+
+Closes #
