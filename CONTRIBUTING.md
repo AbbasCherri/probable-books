@@ -9,6 +9,20 @@ GitHub Flow. `main` is always working and deployable.
 - `npm run lint`, `npm run format:check`, `npm test` and `npm run build` must pass, and the
   e2e smoke (`npm run e2e`) must run; CI checks all of them. Write the test first.
 - Review within 24 hours. Rotation: Abbas reviews Wazan, Wazan reviews Youssef, Youssef reviews Ayk, Ayk reviews Abbas.
+- Two approvals are also needed for `server/src/lib/`, `server/src/db/migrations/`, the middleware folder, the Swagger setup, `.github/`, and any change to offer rules. The second reviewer comes from this table:
+
+  | Author  | First reviewer | Second reviewer |
+  | ------- | -------------- | --------------- |
+  | Abbas   | Ayk            | Youssef         |
+  | Wazan   | Abbas          | Ayk             |
+  | Youssef | Wazan          | Abbas           |
+  | Ayk     | Youssef        | Wazan           |
+
+- One file per owner: each route file in `server/src/routes/` has one owner (see `.github/CODEOWNERS`). Only edit your own; ask the owner for changes in theirs.
+- Migrations are new files only. Never edit a merged migration.
+- On a lockfile conflict, take main's version of `package-lock.json` and rerun `npm install`.
+- A contract change (request, response or message) updates the requirements PDF in the same PR, and the other three teammates are tagged.
+- Code freeze: Monday 30 November 2026. After that, only `fix(...)` PRs.
 
 ## Scripts
 
@@ -19,6 +33,19 @@ GitHub Flow. `main` is always working and deployable.
   reports the rest unless `E2E_STRICT=1`.
 - `npm run format:check`: Prettier check; `npm run format` fixes.
 
+## Running the server locally
+
+Needs Node 22 and Docker. From `server/`:
+
+```
+docker compose up -d
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Checks: `npm run lint`, `npm run format:check`, `npm test`, `npm run migrate`. See `server/README.md`.
+
 ## Branches
 
 `<type>/<scope>-<short-description>`, lowercase with hyphens. Types: `feat`, `fix`, `ui`, `refactor`, `chore`, `docs`.
@@ -27,7 +54,7 @@ Keep them short-lived (1 to 3 days); split big pages into several branches.
 ## Commits
 
 Conventional Commits: `type(scope): summary`, imperative, under 72 characters.
-Scopes: home, browse, listing, course, sell, dashboard, auth, ui, annotate, api, setup.
+Scopes: home, browse, listing, course, sell, dashboard, auth, ui, annotate, api, setup, server, db, docs.
 
 ## Daily routine
 

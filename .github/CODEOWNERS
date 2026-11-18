@@ -1,10 +1,34 @@
-# Replace the placeholders with real GitHub usernames (section 8).
-# Shared code: two approvals by team rule, enforced by review, not by GitHub.
-*                          @AbbasCherri
-/src/pages/home/           @AbbasCherri
-/src/pages/browse/         @AbbasCherri
-/src/pages/listing-details/ @awazzan2
-/src/pages/course-details/ @awazzan2
-/src/pages/listing-form/   @yousefelezzi
-/src/pages/dashboard/      @yousefelezzi
-/src/pages/auth/           @Ayk-12 
+*                                     @AbbasCherri
+
+# Frontend pages
+/src/pages/home/                      @AbbasCherri
+/src/pages/browse/                    @AbbasCherri
+/src/pages/listing-details/           @awazzan2
+/src/pages/course-details/            @awazzan2
+/src/pages/listing-form/              @yousefelezzi
+/src/pages/dashboard/                 @yousefelezzi
+/src/pages/auth/                      @Ayk-12
+
+# Frontend API client (files created later)
+/src/services/api/http.js             @Ayk-12
+/src/services/api/auth.js             @Ayk-12
+/src/services/api/listings.js         @AbbasCherri @awazzan2 @yousefelezzi
+/src/services/api/courses.js          @awazzan2
+/src/services/api/offers.js           @awazzan2 @yousefelezzi
+
+# Server routes
+/server/src/routes/listings.browse.js @AbbasCherri
+/server/src/routes/listings.detail.js @awazzan2
+/server/src/routes/courses.js         @awazzan2
+/server/src/routes/offers.create.js   @awazzan2
+/server/src/routes/listings.write.js  @yousefelezzi
+/server/src/routes/offers.respond.js  @yousefelezzi
+/server/src/routes/auth.js            @Ayk-12
+/server/src/routes/users.js           @Ayk-12
+/server/src/routes/uploads.js         @Ayk-12
+/server/src/middleware/auth.js        @Ayk-12
+
+# Shared code and project config (two approvals by team rule)
+/server/src/lib/                      @AbbasCherri
+/server/src/db/                       @AbbasCherri
+/.github/                             @AbbasCherri
