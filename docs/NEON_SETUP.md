@@ -6,11 +6,11 @@ loads into it without a single rejected row.
 
 ## Files
 
-| File | Where it goes in the repo | Purpose |
-| --- | --- | --- |
-| `001_init.sql` | `server/src/db/migrations/` | Creates everything |
-| `001_init.down.sql` | `server/src/db/migrations/` | Drops everything (dev and test only) |
-| `schema.check.mjs` | `server/tests/` | 63 checks of every constraint, trigger and cascade. Add `@electric-sql/pglite` as a dev dependency and a script `"test:schema": "node tests/schema.check.mjs"`. Needs no database. |
+| File                | Where it goes in the repo   | Purpose                                                                                                                                                                            |
+| ------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `001_init.sql`      | `server/src/db/migrations/` | Creates everything                                                                                                                                                                 |
+| `001_init.down.sql` | `server/src/db/migrations/` | Drops everything (dev and test only)                                                                                                                                               |
+| `schema.check.mjs`  | `server/tests/`             | 63 checks of every constraint, trigger and cascade. Add `@electric-sql/pglite` as a dev dependency and a script `"test:schema": "node tests/schema.check.mjs"`. Needs no database. |
 
 The migration runner must run each file in one transaction (the file has no BEGIN or COMMIT) and
 skip files it has already applied (track them in its own `schema_migrations` table). The `*.down.sql`
@@ -47,32 +47,32 @@ they need the direct string. Normal queries and transactions work fine on the po
 
 ## What the database enforces, and what the API must still enforce
 
-| The database guarantees | The API must still check |
-| --- | --- |
-| One account per email, ignoring case | Normalising email (trim, lower-case) and password length of at least 8 |
-| Title 5 to 120 characters, price 1 to 500,000 cents, retail above price | The exact error messages from the requirements document |
-| Every non-draft listing has title, category, condition, price and pickup spot | At least 1 course on every non-draft listing (courses live in another table) |
-| At most 5 courses and 6 photos per listing, in order, no duplicate course | ISBN check digit (the database only checks the 10 or 13 digit shape) |
-| Course codes exist and have the form `CHEM 201` | Normalising codes before saving (`chem201` becomes `CHEM 201`) |
-| Condition notes: at most 5, each at most 80 characters | Status changes that make sense (for example a draft must be complete before it is published) |
-| Offer amount above 0, message at most 280 characters | Offer at most the asking price; counter below the asking price |
-| A counter is above the offer, and a countered offer always has one | A buyer cannot offer on their own listing; the listing must be active and open to offers |
-| One pending offer per buyer per listing, even under a race | The offer action table (who may accept, decline, counter, withdraw) |
-| Deleting a listing deletes its offers, courses and photos; deleting a user deletes their listings and offers | Listing is `reserved` in the same transaction as the accepted offer |
-| Courses cannot be deleted while listings use them | Search input: escape `%` and `_` before using it in a `LIKE` |
+| The database guarantees                                                                                      | The API must still check                                                                     |
+| ------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| One account per email, ignoring case                                                                         | Normalising email (trim, lower-case) and password length of at least 8                       |
+| Title 5 to 120 characters, price 1 to 500,000 cents, retail above price                                      | The exact error messages from the requirements document                                      |
+| Every non-draft listing has title, category, condition, price and pickup spot                                | At least 1 course on every non-draft listing (courses live in another table)                 |
+| At most 5 courses and 6 photos per listing, in order, no duplicate course                                    | ISBN check digit (the database only checks the 10 or 13 digit shape)                         |
+| Course codes exist and have the form `CHEM 201`                                                              | Normalising codes before saving (`chem201` becomes `CHEM 201`)                               |
+| Condition notes: at most 5, each at most 80 characters                                                       | Status changes that make sense (for example a draft must be complete before it is published) |
+| Offer amount above 0, message at most 280 characters                                                         | Offer at most the asking price; counter below the asking price                               |
+| A counter is above the offer, and a countered offer always has one                                           | A buyer cannot offer on their own listing; the listing must be active and open to offers     |
+| One pending offer per buyer per listing, even under a race                                                   | The offer action table (who may accept, decline, counter, withdraw)                          |
+| Deleting a listing deletes its offers, courses and photos; deleting a user deletes their listings and offers | Listing is `reserved` in the same transaction as the accepted offer                          |
+| Courses cannot be deleted while listings use them                                                            | Search input: escape `%` and `_` before using it in a `LIKE`                                 |
 
 ## Mapping from API and seed fields to columns
 
-| API or seed field | Stored as |
-| --- | --- |
-| `memberSince` | `users.created_at` |
-| `password` (seed) | `users.password_hash`, a bcrypt hash |
-| `courseCodes` (array) | one `listing_courses` row per code; `position` is the array index |
-| `photos` (array of `{url, alt}`) | one `listing_photos` row per photo; `position` is the array index, 0 is the cover |
-| `conditionNotes` | `listings.condition_notes` (text array) |
-| `requiredMaterials` | `courses.required_materials` (JSON); `tips` and `relatedCodes` are text arrays |
-| `priceCents`, `retailCents`, `amountCents`, `counterCents` | integer columns of the same meaning |
-| `createdAt`, `updatedAt` | `created_at`, `updated_at` (`updated_at` also moves automatically on every update) |
+| API or seed field                                          | Stored as                                                                          |
+| ---------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `memberSince`                                              | `users.created_at`                                                                 |
+| `password` (seed)                                          | `users.password_hash`, a bcrypt hash                                               |
+| `courseCodes` (array)                                      | one `listing_courses` row per code; `position` is the array index                  |
+| `photos` (array of `{url, alt}`)                           | one `listing_photos` row per photo; `position` is the array index, 0 is the cover  |
+| `conditionNotes`                                           | `listings.condition_notes` (text array)                                            |
+| `requiredMaterials`                                        | `courses.required_materials` (JSON); `tips` and `relatedCodes` are text arrays     |
+| `priceCents`, `retailCents`, `amountCents`, `counterCents` | integer columns of the same meaning                                                |
+| `createdAt`, `updatedAt`                                   | `created_at`, `updated_at` (`updated_at` also moves automatically on every update) |
 
 Seed insert order: `users`, `courses`, `listings`, `listing_courses`, `listing_photos`, `offers`.
 Seed ids (`usr_demo`, `lst_001`, `off_001`) are kept as they are; new rows get `usr_`, `lst_`, `off_` plus a uuid.
