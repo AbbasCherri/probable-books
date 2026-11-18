@@ -210,4 +210,41 @@ Netlify, where the live app is hosted, and on Cloudflare Pages. On another host,
 equivalent rewrite (Vercel: a `vercel.json` with
 `{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }`).
 
+## Backend (Phase 2, in progress)
+
+The backend (Node 22, Express, PostgreSQL) lives in [`server/`](server/). Setup and file
+ownership are in [`server/README.md`](server/README.md).
+
+### Abbas
+
+#### API docs
+
+#### Contributions
+
+#### Challenges
+
+### Wazan
+
+#### API docs
+
+#### Contributions
+
+#### Challenges
+
+### Youssef
+
+#### API docs
+
+#### Contributions
+
+#### Challenges
+
+### Ayk
+
+#### API docs
+
+#### Contributions
+
+#### Challenges
+
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the team workflow.
