@@ -1,9 +1,14 @@
 // The real backend. Same function signatures as the mock (./mock/mockApi.js), so pages do not
 // care which one they get; every rule (validation, ownership, offers) is decided by the server.
+import { removeKey } from '@/lib/storage'
 import { ApiError } from './errors'
 import { clearToken, getToken, request, setToken } from './http'
 
 export { ApiError }
+
+// Browsers that ran the app before it used the server still hold the old in-memory mock's
+// data, including the demo accounts' passwords. Nothing reads it any more: remove it.
+for (const key of ['pb.db.v2', 'pb.session']) removeKey(key)
 
 // ---------- listings ----------
 /** Browse: filters use the page's names; the API's query names are mapped here. */

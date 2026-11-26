@@ -31,6 +31,15 @@ afterEach(() => {
 })
 
 describe('remote client', () => {
+  it('removes the old mock data the browser may still hold', async () => {
+    localStorage.setItem('pb.db.v2', '{"users":[{"password":"x"}]}')
+    localStorage.setItem('pb.session', '{"userId":"usr_demo"}')
+    vi.resetModules()
+    await import('@/services/remote')
+    expect(localStorage.getItem('pb.db.v2')).toBeNull()
+    expect(localStorage.getItem('pb.session')).toBeNull()
+  })
+
   it('maps Browse filters to the GET /api/listings query', async () => {
     const fetchMock = vi.fn().mockResolvedValue(reply(200, { items: [], total: 0 }))
     vi.stubGlobal('fetch', fetchMock)
