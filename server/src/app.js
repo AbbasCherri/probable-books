@@ -23,7 +23,10 @@ app.set('trust proxy', 1)
 app.disable('x-powered-by')
 
 app.use(requestLog)
-app.use(helmet())
+// No upgrade-insecure-requests: the docs page's "Try it out" must work over plain http locally.
+app.use(
+  helmet({ contentSecurityPolicy: { directives: { upgradeInsecureRequests: null } } }),
+)
 app.use(corsMiddleware)
 app.use(express.json({ limit: '100kb' }))
 
