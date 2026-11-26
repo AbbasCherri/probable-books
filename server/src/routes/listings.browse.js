@@ -171,4 +171,32 @@ router.get('/listings', async (req, res) => {
   })
 })
 
+/**
+ * @openapi
+ * /api/listings/featured:
+ *   get:
+ *     tags: [Listings]
+ *     summary: Featured listings for the Home page
+ *     description: Up to 5 listings that are active and marked featured, newest first.
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Featured listings (possibly an empty list).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               maxItems: 5
+ *               items: { $ref: '#/components/schemas/Listing' }
+ *       500: { $ref: '#/components/responses/ServerError' }
+ */
+router.get('/listings/featured', async (_req, res) => {
+  const { rows } = await pool.query(
+    `SELECT ${LISTING_COLUMNS} FROM listings l
+     WHERE l.featured AND l.status = 'active'
+     ORDER BY ${TIEBREAK} LIMIT 5`,
+  )
+  res.json(rows.map(toListing))
+})
+
 export default router
