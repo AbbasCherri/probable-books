@@ -186,7 +186,7 @@ export const definition = {
         type: 'object',
         required: ['url', 'alt'],
         properties: {
-          url: { type: 'string', example: 'https://res.cloudinary.com/.../cover.jpg' },
+          url: { type: 'string', example: 'https://api.example/api/uploads/upl_4f1c...' },
           alt: { type: 'string', description: 'May be empty text.' },
         },
       },

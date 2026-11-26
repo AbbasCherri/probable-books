@@ -82,12 +82,17 @@ export async function migrateDownDev() {
       'migrate:down:dev wipes data. Pass --i-know-this-wipes-data to confirm.',
     )
   }
-  const sql = await readFile(new URL('001_init.down.sql', dir), 'utf8')
+  // Undo every migration, newest first (002 before 001).
+  const downs = (await readdir(dir))
+    .filter((f) => f.endsWith('.down.sql'))
+    .sort()
+    .reverse()
   await withClient(async (client) => {
     await client.query('SELECT pg_advisory_lock($1)', [LOCK_ID])
     try {
       await client.query('BEGIN')
-      await client.query(sql)
+      for (const file of downs)
+        await client.query(await readFile(new URL(file, dir), 'utf8'))
       await client.query(
         'CREATE TABLE IF NOT EXISTS schema_migrations (name text PRIMARY KEY, checksum text NOT NULL, applied_at timestamptz NOT NULL DEFAULT now())',
       )
@@ -98,7 +103,7 @@ export async function migrateDownDev() {
       throw err
     }
   })
-  console.log('migrate: rolled back 001_init and cleared schema_migrations')
+  console.log('migrate: rolled back every migration and cleared schema_migrations')
 }
 
 // CLI entry
