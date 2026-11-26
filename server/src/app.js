@@ -1,5 +1,6 @@
 import express from 'express'
 import helmet from 'helmet'
+import { docs } from './docs/router.js'
 import { errorHandler, notFoundRoute } from './lib/errors.js'
 import { optionalAuth } from './middleware/auth.js'
 import { corsMiddleware } from './middleware/cors.js'
@@ -22,7 +23,10 @@ app.set('trust proxy', 1)
 app.disable('x-powered-by')
 
 app.use(requestLog)
-app.use(helmet())
+// No upgrade-insecure-requests: the docs page's "Try it out" must work over plain http locally.
+app.use(
+  helmet({ contentSecurityPolicy: { directives: { upgradeInsecureRequests: null } } }),
+)
 app.use(corsMiddleware)
 app.use(express.json({ limit: '100kb' }))
 
@@ -33,6 +37,7 @@ app.use('/api', optionalAuth)
 // Order matters: the fixed words /listings/featured, /new and /mine must be matched before
 // /listings/:id, so the browse and write routers come before the detail router.
 app.use('/api', health)
+app.use('/api', docs)
 app.use('/api', auth)
 app.use('/api', users)
 app.use('/api', uploads)
