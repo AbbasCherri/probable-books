@@ -19,11 +19,12 @@ npm run dev             # http://localhost:4000
 The API listens on the `PORT` from `.env` (4000 by default). Check it with
 `curl localhost:4000/api/health` and open the interactive docs at <http://localhost:4000/api/docs>.
 
-| Variable         | Purpose                                                                                   |
-| ---------------- | ----------------------------------------------------------------------------------------- |
-| `CORS_ORIGIN`    | Comma-separated web app origins allowed to call the API. Default: `http://localhost:5173` |
-| `JWT_SECRET`     | Signs sign-in tokens                                                                      |
-| `JWT_EXPIRES_IN` | Token lifetime (`7d`)                                                                     |
+| Variable         | Purpose                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------ |
+| `CORS_ORIGIN`    | Comma-separated web app origins allowed to call the API. Default: `http://localhost:5173`  |
+| `JWT_SECRET`     | Signs sign-in tokens                                                                       |
+| `JWT_EXPIRES_IN` | Token lifetime (`7d`)                                                                      |
+| `PUBLIC_API_URL` | The API's public address, used in photo links. Default: the address the request came in on |
 
 ## Platform conventions (for every route file)
 
@@ -63,7 +64,7 @@ One file per owner, so pull requests rarely collide.
 | `src/routes/offers.respond.js`  | Youssef | PATCH /offers/:id                                            |
 | `src/routes/auth.js`            | Ayk     | POST /auth/register, /auth/login, /auth/logout, GET /auth/me |
 | `src/routes/users.js`           | Ayk     | GET /users/:id, PATCH and DELETE /users/me                   |
-| `src/routes/uploads.js`         | Ayk     | POST /uploads                                                |
+| `src/routes/uploads.js`         | Ayk     | POST /uploads, GET /uploads/:id                              |
 | `src/middleware/auth.js`        | Ayk     | JWT middleware                                               |
 | `src/lib/`, `src/db/`           | Abbas   | Shared code and migrations (two approvals)                   |
 
@@ -86,6 +87,10 @@ npm run seed          # same, but refuses if the users table already has rows
 
 `npm run migrate:down:dev -- --i-know-this-wipes-data` drops the schema (refused when `NODE_ENV=production`).
 `seed:reset` in production also needs `--yes-wipe-production`.
+
+Migrations: `001_init.sql` is the schema, `002_uploads.sql` adds the `uploads` table. Listing photos
+are stored there and served by the API at `/api/uploads/:id`, so their addresses keep working on any
+host with no storage account. Run `npm run migrate` after pulling to apply new ones.
 
 **Never edit a merged migration.** Add `002_*.sql` instead. The runner stores a checksum for each applied file
 and refuses to continue if one changes.

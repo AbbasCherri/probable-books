@@ -82,10 +82,12 @@ You need Node.js 20.19+ or 22.12+, and npm, which comes with Node. Check your ve
    npm install
    ```
 
-3. Start the development server:
+3. Start the API first (see [`server/README.md`](server/README.md) for its one-time database
+   setup), then the web app:
 
    ```
-   npm run dev
+   cd server && npm install && npm run dev    # API on http://localhost:4000
+   cd .. && npm run dev                       # web app on http://localhost:5173
    ```
 
 4. Open <http://localhost:5173>. Sign in with `demo@probable.books` / `password123`, or register
@@ -99,7 +101,8 @@ npm run build      # writes the static site to dist/
 npm run preview    # serves dist/ at http://localhost:4173
 ```
 
-No environment variables or backend are needed. All data comes from the mock API described below.
+No environment variables are needed in development: Vite forwards every `/api` request to the
+API on port 4000 (set `API_PROXY_TARGET` to use another address).
 
 ### Other scripts
 
@@ -164,43 +167,32 @@ Login: sign-in with field validation, error messages and a redirect back to the 
 needed it. Register: the sign-up form with name, email, year of study and password, with a
 show/hide password field shared by both pages.
 
-## How mock data simulates the backend
+## How the frontend talks to the backend
 
-Pages never touch mock data directly. Every page calls functions in
-[`src/services/api.js`](src/services/api.js) (`getListings`, `getListing`, `createListing`,
-`makeOffer`, `respondToOffer`, `login`, `register` and so on). Each one returns a Promise, like
-a real HTTP call. When the backend exists, these functions change and the pages don't.
+Pages never call `fetch` themselves. Every page calls functions in
+[`src/services/api.js`](src/services/api.js) (`getListings`, `createListing`, `makeOffer`,
+`respondToOffer`, `login`, `uploadPhoto` and so on), and those go to the API through one request
+layer, [`src/services/http.js`](src/services/http.js).
 
-- **Seed data.** [`src/services/mock/`](src/services/mock/) holds the starting data: 15 courses,
-  16 users, hand-written and generated listings and offers. The seed is deterministic, so
-  screenshots, tests and bug reports always see the same data. Dates are relative to when the
-  data was seeded, so "posted today" stays true. The seed is loaded with a dynamic import, in
-  its own chunk.
-- **A database in the browser.** On first load the seed is copied into an in-memory database
-  and saved to `localStorage` (`pb.db.v2`) after every write. Listings you create, offers you
-  make and accounts you register survive a page reload, and each browser has its own copy.
-  Changing the seed bumps a version number, and stored data from an older version is replaced.
-- **Network behaviour.** Every call waits 250–600 ms, like a network round trip, so you see the
-  loading skeletons in use. Errors are thrown as an `ApiError` with an
-  HTTP-style status (401 not signed in, 403 not yours, 404 not found, 422 invalid input, with
-  per-field messages that forms show next to each input).
-- **Business rules.** The mock enforces the rules a server would: only the seller can edit a
-  listing or answer an offer, you cannot make an offer on your own listing, a counter-offer has
-  to fall between the offer and the asking price, and accepting an offer marks the listing
-  reserved.
-- **Sessions.** `login` and `register` store the signed-in user's id under `pb.session`.
-  `/sell`, `/listings/:id/edit` and `/dashboard` redirect to the login page when nobody is
-  signed in. Demo passwords sit in the seed as plain text. This is not real authentication.
-- **Photos.** Photos you add stay in the browser as object URLs and are never uploaded, so a new
-  listing's photos are gone after a reload.
+- **The server decides.** Validation, ownership, offer rules and course statistics all run on
+  the server. Forms still check input as you type, but only for quick feedback.
+- **Sessions.** `login` and `register` keep the server's token in `localStorage` (`pb.token`) and
+  send it as `Authorization: Bearer ...`. When the server answers 401 to a stored token (expired,
+  or the account was deleted), the token is dropped and the app treats you as signed out.
+  `/sell`, `/listings/:id/edit` and `/dashboard` then send you to the login page.
+- **Errors.** Every failure becomes an `ApiError` with the HTTP status, the server's message,
+  per-field messages for 422s (forms show them next to each input) and suggested courses for an
+  unknown course code. A network failure has status 0.
+- **Photos.** The Sell form uploads new photos to `POST /api/uploads` when you save, and the
+  listing keeps the addresses the server returns, so photos survive a reload.
 
-Developer switches, set in the browser console:
+### The mock API (tests only)
 
-```js
-localStorage['pb.mock.latency'] = '0' // no delay (any number of ms)
-localStorage['pb.mock.fail'] = 'getListings,makeOffer' // those calls fail with a 500 ('*' = all, dev only)
-localStorage.removeItem('pb.db.v2') // reset to the seed on the next reload
-```
+[`src/services/mock/`](src/services/mock/) holds the demo data (the server's seed script loads
+the same data into Postgres) and `mockApi.js`, an in-memory stand-in that follows the server's
+rules. Unit tests and the Playwright UI suite switch it on with `VITE_API_MOCK=1`, so they need no
+server and every browser gets its own copy of the data. The flag is fixed at build time, so the
+mock is never part of the app's bundle.
 
 ## Deploying
 
@@ -209,6 +201,10 @@ answer unknown paths with `index.html`: `public/_redirects` (`/* /index.html 200
 Netlify, where the live app is hosted, and on Cloudflare Pages. On another host, add the
 equivalent rewrite (Vercel: a `vercel.json` with
 `{ "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }] }`).
+
+Build the web app with `VITE_API_URL` set to the deployed API's address (for example
+`VITE_API_URL=https://probable-books-api.example npm run build`). On the API, set `CORS_ORIGIN` to
+the web app's address and `PUBLIC_API_URL` to the API's own public address (used in photo links).
 
 ## Backend (Phase 2, in progress)
 
@@ -219,10 +215,9 @@ ownership are in [`server/README.md`](server/README.md).
 
 1. Set up the API and its demo data as described in [`server/README.md`](server/README.md), then
    start it with `npm run dev` inside `server/` (port 4000).
-2. In the repository root, copy `.env.example` to `.env.local` (it sets
-   `VITE_API_URL=http://localhost:4000`), then run `npm install` and `npm run dev`.
-3. Open <http://localhost:5173>. Home and Browse now read from the API. Without `VITE_API_URL`
-   the app falls back to the in-browser mock data.
+2. In the repository root, run `npm install` and `npm run dev`. Vite forwards `/api` to the API,
+   so no `.env` file is needed.
+3. Open <http://localhost:5173>. Every page now reads from and writes to the API.
 
 Interactive API documentation is at <http://localhost:4000/api/docs> (JSON at `/api/docs.json`).
 
@@ -321,6 +316,22 @@ the amount error. The listing checks run first and the body checks last, and a t
 ### Ayk
 
 #### API docs
+
+Responses use the User shapes from the requirements (A6). A failed form answers
+`422 { message, fields }`; a missing or bad token on a Required endpoint answers
+`401 { "message": "Sign in to continue." }`.
+
+| Method | Path                 | Access   | Request                                                                               | Response                                                                                                 |
+| ------ | -------------------- | -------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| POST   | `/api/auth/register` | Public   | `{ name, email, password, yearOfStudy? }` (password at least 8 characters)            | `201 { user, token }`; 422 per field, or the email is taken; 429 after 10 attempts in 15 minutes         |
+| POST   | `/api/auth/login`    | Public   | `{ email, password }` (email ignores capitalisation and spaces)                       | `200 { user, token }`; `401 "That email and password don't match."`; 429 after 10 failures in 15 minutes |
+| GET    | `/api/auth/me`       | Required | None                                                                                  | `200` User (self)                                                                                        |
+| POST   | `/api/auth/logout`   | Public   | None                                                                                  | `204`, always                                                                                            |
+| GET    | `/api/users/:id`     | Public   | None                                                                                  | `200` User (public) plus `activeListingCount`; `404 "User not found."`                                   |
+| PATCH  | `/api/users/me`      | Required | Any of `name`, `yearOfStudy`, `usualPickupSpot`; `currentPassword` with `newPassword` | `200` User (self); 422 per field, `"That isn't your current password."`                                  |
+| DELETE | `/api/users/me`      | Required | None                                                                                  | `204`; the account, its listings and every related offer are removed                                     |
+| POST   | `/api/uploads`       | Required | multipart field `photo`: one JPEG, PNG or WebP, at most 5 MB                          | `201 { url }`, a public permanent address; 422 for wrong type, too large or no file                      |
+| GET    | `/api/uploads/:id`   | Public   | None                                                                                  | The image; `404 "Photo not found."`                                                                      |
 
 #### Contributions
 
