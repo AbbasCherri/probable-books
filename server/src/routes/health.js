@@ -1,14 +1,33 @@
+// Owner: Abbas (@AbbasCherri)
+// Endpoint: GET /health (P1)
+
 import { Router } from 'express'
 import { pool } from '../db/pool.js'
 
 export const health = Router()
 
-// GET /api/health: confirms the API is up and can reach the database through the pooler.
+/**
+ * @openapi
+ * /api/health:
+ *   get:
+ *     tags: [Platform]
+ *     summary: API and database are up
+ *     description: Answers 200 only when the database is reachable through the pool.
+ *     security: []
+ *     responses:
+ *       200:
+ *         description: Up.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status: { type: string, enum: [ok] }
+ *       500:
+ *         $ref: '#/components/responses/ServerError'
+ */
+// Errors (database unreachable) fall through to the A4 handler as a plain 500.
 health.get('/health', async (_req, res) => {
-  try {
-    await pool.query('select 1')
-    res.json({ status: 'ok', db: 'up' })
-  } catch {
-    res.status(503).json({ status: 'error', db: 'down' })
-  }
+  await pool.query('select 1')
+  res.json({ status: 'ok' })
 })
