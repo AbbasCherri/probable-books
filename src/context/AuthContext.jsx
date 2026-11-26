@@ -7,6 +7,7 @@ import {
   useState,
 } from 'react'
 import * as api from '@/services/api'
+import { SIGNED_OUT_EVENT } from '@/services/http'
 
 const AuthContext = createContext(null)
 
@@ -19,9 +20,15 @@ export function AuthProvider({ children }) {
     api
       .getCurrentUser()
       .then((u) => alive && setUser(u))
+      // Server unreachable at start: carry on signed out; protected pages ask to sign in.
+      .catch(() => alive && setUser(null))
       .finally(() => alive && setReady(true))
+    // The server rejected the stored token mid-session (expired, account deleted).
+    const signedOut = () => setUser(null)
+    window.addEventListener(SIGNED_OUT_EVENT, signedOut)
     return () => {
       alive = false
+      window.removeEventListener(SIGNED_OUT_EVENT, signedOut)
     }
   }, [])
 
