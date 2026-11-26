@@ -227,9 +227,53 @@ ownership are in [`server/README.md`](server/README.md).
 
 #### API docs
 
+All paths are under `/api`. Errors use the shared format (`{ message, fields?, closest? }`).
+The interactive versions, with every response shape, are on `/api/docs`.
+
+| Method and path             | Access   | Request                                                     | Success                                       | Failures                                                                                                                                                                                                                       |
+| --------------------------- | -------- | ----------------------------------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `GET /listings/:id`         | Optional | none                                                        | 200 Listing detail: the listing plus `seller` | 404 "This page was torn out." (unknown, or someone else's draft)                                                                                                                                                               |
+| `GET /courses`              | Public   | none                                                        | 200 every Course with `listingCount`, by code | none                                                                                                                                                                                                                           |
+| `GET /courses/:code`        | Public   | `:code` in any spelling (`CHEM-201`, `chem201`, `CHEM 201`) | 200 Course detail with `stats`                | 404 "No CHEM 999 in the index." with `closest`                                                                                                                                                                                 |
+| `POST /listings/:id/offers` | Required | `{ amountCents, message? }`                                 | 201 the new pending Offer                     | 401 not signed in; 404 unknown or someone else's draft; 422 own listing, not active (reserved, sold, draft), not open to offers, already a pending offer, `fields.amountCents`, `fields.message` (first failure in that order) |
+| `GET /offers?direction=`    | Required | `direction`: `received` (default) or `sent`                 | 200 Offers with context, newest first         | 401 not signed in; 422 `fields.direction` "Use received or sent."                                                                                                                                                              |
+
+Notes:
+
+- `seller.email` is only sent when the request carries a valid token, for "Contact seller".
+  `seller.activeListingCount` counts the seller's active listings, including this one if active.
+- `GET /courses` may answer with data up to 60 seconds old, because the header lookup calls it
+  every time it opens.
+- Course stats (`listingCount`, `minCents`, `medianCents`) cover active listings only. The median
+  is rounded to a whole cent; with no listings both prices are `null`.
+- In `GET /offers?direction=sent`, `listing` is `null` if its seller has turned it back into a
+  draft, so drafts stay private.
+
+Code: `server/src/routes/listings.detail.js`, `courses.js` and `offers.create.js`, with tests in
+`server/tests/` (`npm test` in `server/`, against the database in `DATABASE_URL`).
+
 #### Contributions
 
+Phase 1: the Listing Details and Course Details pages, plus the shared `Dialog` and the
+`useFocusTrap` hook (see Team contributions above). Phase 2: the buyer's side of the API. One
+listing with its seller, the course index and course details with price statistics, making an
+offer, and the list of a user's offers that fills the Dashboard tabs. Each endpoint has its
+OpenAPI entry and a test for every success and failure listed in the requirements.
+
 #### Challenges
+
+**Two offers at the same moment.** A buyer may have only one pending offer per listing, but
+checking "is there one already?" and then inserting is not safe: two requests can both pass the
+check before either inserts. The fix is in the database. A partial unique index
+(`offers_one_pending_per_buyer`) lets only one pending row through, and the endpoint turns the
+losing request's unique-violation error into the normal "You already have an offer waiting"
+message. A test fires two identical offers together and expects exactly one 201 and one 422.
+The listing row is also read with `FOR SHARE`, so an offer can't slip onto a listing that a
+seller is reserving at that moment.
+
+**Error order matches the spec.** The requirements list the offer failures in a fixed order and
+report only the first, so a sold listing with a bad amount must say "This listing is sold.", not
+the amount error. The listing checks run first and the body checks last, and a test pins the order.
 
 ### Youssef
 
