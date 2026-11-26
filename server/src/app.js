@@ -1,6 +1,7 @@
 import express from 'express'
 import helmet from 'helmet'
 import { errorHandler, notFoundRoute } from './lib/errors.js'
+import { optionalAuth } from './middleware/auth.js'
 import { corsMiddleware } from './middleware/cors.js'
 import { requestLog } from './middleware/requestLog.js'
 import { health } from './routes/health.js'
@@ -24,6 +25,10 @@ app.use(requestLog)
 app.use(helmet())
 app.use(corsMiddleware)
 app.use(express.json({ limit: '100kb' }))
+
+// Who is calling (A2/A3): a valid token sets req.user; a missing or bad one leaves it unset.
+// Required endpoints turn "no req.user" into 401 with their signedIn guard.
+app.use('/api', optionalAuth)
 
 // Order matters: the fixed words /listings/featured, /new and /mine must be matched before
 // /listings/:id, so the browse and write routers come before the detail router.
