@@ -126,6 +126,46 @@ export async function resetDemoData() {
   save()
   currentUserId()
 }
+
+// ---------- live backend ----------
+// With VITE_API_URL set (e.g. http://localhost:4000), the endpoints already built on the
+// server are read from it; the rest keep using the mock until their owners switch them over.
+// Ayk's shared client will replace liveGet; it only covers public GETs (no token).
+const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '')
+export const LIVE = API_URL !== ''
+
+/** GET /api{path}. Arrays become repeated params; empty values are left out. */
+async function liveGet(path, params = {}) {
+  const url = new URL(`${API_URL}/api${path}`, window.location.origin)
+  for (const [key, value] of Object.entries(params)) {
+    for (const item of [].concat(value)) {
+      if (item === undefined || item === null || item === '' || item === false) continue
+      url.searchParams.append(key, String(item))
+    }
+  }
+  let res
+  try {
+    res = await fetch(url, { headers: { Accept: 'application/json' } })
+  } catch {
+    throw new ApiError(
+      0,
+      "We couldn't reach the server. Check your connection and try again.",
+    )
+  }
+  const body = await res.json().catch(() => null)
+  if (!res.ok) {
+    // Server errors use the A4 shape: { message, fields?, closest? }.
+    const err = new ApiError(
+      res.status,
+      body?.message ?? 'Something went wrong. Try again.',
+      body?.fields,
+    )
+    if (body?.closest) err.closest = body.closest
+    throw err
+  }
+  return body
+}
+
 const clone = (x) => structuredClone(x)
 const now = () => new Date().toISOString()
 
@@ -197,6 +237,20 @@ function readableListing(id) {
 
 // ---------- listings ----------
 export async function getListings(filters = {}) {
+  if (LIVE) {
+    return liveGet('/listings', {
+      q: filters.q?.trim(),
+      course: filters.courses,
+      category: filters.categories,
+      condition: filters.conditions,
+      minPrice: filters.minPrice,
+      maxPrice: filters.maxPrice,
+      openToOffers: filters.openToOffers ? 'true' : undefined,
+      sort: filters.sort,
+      page: filters.page,
+      pageSize: filters.pageSize,
+    })
+  }
   await begin('getListings')
   const {
     q,
@@ -244,11 +298,13 @@ export async function getListings(filters = {}) {
 }
 
 export async function getFeaturedListings() {
+  if (LIVE) return liveGet('/listings/featured')
   await begin('getFeaturedListings')
   return clone(db.listings.filter((l) => l.featured && l.status === 'active').slice(0, 5))
 }
 
 export async function getNewListings(limit = 10) {
+  if (LIVE) return liveGet('/listings/new', { limit })
   await begin('getNewListings')
   return clone(
     db.listings
