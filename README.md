@@ -215,13 +215,48 @@ equivalent rewrite (Vercel: a `vercel.json` with
 The backend (Node 22, Express, PostgreSQL) lives in [`server/`](server/). Setup and file
 ownership are in [`server/README.md`](server/README.md).
 
+### Running the whole project locally
+
+1. Set up the API and its demo data as described in [`server/README.md`](server/README.md), then
+   start it with `npm run dev` inside `server/` (port 4000).
+2. In the repository root, copy `.env.example` to `.env.local` (it sets
+   `VITE_API_URL=http://localhost:4000`), then run `npm install` and `npm run dev`.
+3. Open <http://localhost:5173>. Home and Browse now read from the API. Without `VITE_API_URL`
+   the app falls back to the in-browser mock data.
+
+Interactive API documentation is at <http://localhost:4000/api/docs> (JSON at `/api/docs.json`).
+
 ### Abbas
 
 #### API docs
 
+All three are Public (no token). Responses use the Listing shape from the requirements (A6).
+Unknown filter values are ignored, so none of them has its own failure case; any unexpected
+failure is `500 { "message": "Something went wrong. Try again." }`.
+
+| Method | Path                     | Request                                                                                                                                                                                                                                   | Response                                                        |
+| ------ | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| GET    | `/api/listings`          | Query: `q`, `course`, `category`, `condition` (repeat or comma-separate for OR), `minPrice`, `maxPrice` (cents), `openToOffers=true`, `sort` (`newest`, `price_asc`, `price_desc`, `condition`), `page`, `pageSize` (default 24, max 100) | `200 { items: Listing[], total, page, pageSize }`, no drafts    |
+| GET    | `/api/listings/featured` | None                                                                                                                                                                                                                                      | `200 Listing[]`: up to 5 active featured listings, newest first |
+| GET    | `/api/listings/new`      | Query: `limit` (default 10, clamped to 1..50)                                                                                                                                                                                             | `200 Listing[]`: newest active listings                         |
+| GET    | `/api/health`            | None                                                                                                                                                                                                                                      | `200 { status: "ok" }`, or 500 when the database is unreachable |
+| GET    | `/api/docs`              | None                                                                                                                                                                                                                                      | Swagger UI page; `/api/docs.json` is the OpenAPI document       |
+
 #### Contributions
 
+Phase 1: project scaffolding, design tokens, the mock data and mock API, shared UI components,
+CI and the test setup. Phase 2: the PostgreSQL schema on Neon with its migration runner and
+seed script, the API platform (error format, request log, CORS, security headers, router
+layout), the interactive documentation with the shared data shapes, the browse endpoints, the
+health check, and switching Home and Browse over to the live API.
+
 #### Challenges
+
+Stable paging across sorts. Sorting by price or condition alone leaves ties, and Postgres may
+return tied rows in a different order on each query, so page 2 could repeat or skip a listing
+from page 1. Every sort now ends with `created_at DESC, id ASC`, which makes the order total;
+a test walks every sort with page sizes 13 and 50 and checks both give the same sequence with
+no repeats or gaps.
 
 ### Wazan
 
