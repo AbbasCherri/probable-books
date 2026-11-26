@@ -1,19 +1,13 @@
-// The only module pages talk to. Today it reads seed data with a simulated delay;
-// later the same signatures will call the real backend.
+// In-memory stand-in for the backend, used only by unit tests and the UI e2e suite
+// (VITE_API_MOCK=1). The real app always talks to the API through ../remote.js. It mirrors
+// the server's rules so UI tests see the same answers; the server is the authority.
 import { CONDITIONS, PAGE_SIZE, PICKUP_SPOTS } from '@/lib/constants'
 import { normalizeCode } from '@/lib/courses'
 import { MAX_OFFER_MESSAGE, validateListingInput } from '@/lib/listingRules'
 import { readJSON, readString, writeJSON, removeKey } from '@/lib/storage'
+import { ApiError } from '../errors'
 
-export class ApiError extends Error {
-  /** fields: optional { fieldName: message } for 422s, so forms can mark each input. */
-  constructor(status, message, fields) {
-    super(message)
-    this.name = 'ApiError'
-    this.status = status
-    if (fields) this.fields = fields
-  }
-}
+export { ApiError }
 
 const SESSION_KEY = 'pb.session'
 // The mock database lives in memory and is saved to localStorage after every write.
@@ -46,7 +40,7 @@ const isDb = (x) =>
 // Seed data is a dynamic import, so it (and the demo passwords) ships as its own chunk and
 // is only fetched when there is no stored database.
 async function seedDb() {
-  const { buildSeed } = await import('./mock')
+  const { buildSeed } = await import('./index')
   const at = Date.now()
   return {
     version: DB_VERSION,
@@ -127,45 +121,6 @@ export async function resetDemoData() {
   currentUserId()
 }
 
-// ---------- live backend ----------
-// With VITE_API_URL set (e.g. http://localhost:4000), the endpoints already built on the
-// server are read from it; the rest keep using the mock until their owners switch them over.
-// Ayk's shared client will replace liveGet; it only covers public GETs (no token).
-const API_URL = (import.meta.env.VITE_API_URL ?? '').replace(/\/+$/, '')
-export const LIVE = API_URL !== ''
-
-/** GET /api{path}. Arrays become repeated params; empty values are left out. */
-async function liveGet(path, params = {}) {
-  const url = new URL(`${API_URL}/api${path}`, window.location.origin)
-  for (const [key, value] of Object.entries(params)) {
-    for (const item of [].concat(value)) {
-      if (item === undefined || item === null || item === '' || item === false) continue
-      url.searchParams.append(key, String(item))
-    }
-  }
-  let res
-  try {
-    res = await fetch(url, { headers: { Accept: 'application/json' } })
-  } catch {
-    throw new ApiError(
-      0,
-      "We couldn't reach the server. Check your connection and try again.",
-    )
-  }
-  const body = await res.json().catch(() => null)
-  if (!res.ok) {
-    // Server errors use the A4 shape: { message, fields?, closest? }.
-    const err = new ApiError(
-      res.status,
-      body?.message ?? 'Something went wrong. Try again.',
-      body?.fields,
-    )
-    if (body?.closest) err.closest = body.closest
-    throw err
-  }
-  return body
-}
-
 const clone = (x) => structuredClone(x)
 const now = () => new Date().toISOString()
 
@@ -237,20 +192,6 @@ function readableListing(id) {
 
 // ---------- listings ----------
 export async function getListings(filters = {}) {
-  if (LIVE) {
-    return liveGet('/listings', {
-      q: filters.q?.trim(),
-      course: filters.courses,
-      category: filters.categories,
-      condition: filters.conditions,
-      minPrice: filters.minPrice,
-      maxPrice: filters.maxPrice,
-      openToOffers: filters.openToOffers ? 'true' : undefined,
-      sort: filters.sort,
-      page: filters.page,
-      pageSize: filters.pageSize,
-    })
-  }
   await begin('getListings')
   const {
     q,
@@ -298,13 +239,11 @@ export async function getListings(filters = {}) {
 }
 
 export async function getFeaturedListings() {
-  if (LIVE) return liveGet('/listings/featured')
   await begin('getFeaturedListings')
   return clone(db.listings.filter((l) => l.featured && l.status === 'active').slice(0, 5))
 }
 
 export async function getNewListings(limit = 10) {
-  if (LIVE) return liveGet('/listings/new', { limit })
   await begin('getNewListings')
   return clone(
     db.listings
@@ -654,6 +593,7 @@ export async function register({ name, email, password, yearOfStudy } = {}) {
   if (!/^[^\s@]+@[^\s@]+$/.test(address))
     fields.email = 'Enter an email like you@school.edu.'
   if (!password) fields.password = 'Choose a password.'
+  else if (String(password).length < 8) fields.password = 'Use at least 8 characters.'
   if (Object.keys(fields).length)
     throw new ApiError(422, Object.values(fields).join(' '), fields)
   if (db.users.some((u) => u.email === address))
@@ -684,4 +624,12 @@ export async function getCurrentUser() {
   const id = currentUserId()
   const u = id && findUser(id)
   return u ? selfUser(u) : null
+}
+
+// ---------- uploads ----------
+/** The mock has nowhere to store files: the photo keeps its in-browser object URL. */
+export async function uploadPhoto(file) {
+  await begin('uploadPhoto')
+  requireUser()
+  return { url: URL.createObjectURL(file) }
 }
