@@ -199,4 +199,41 @@ router.get('/listings/featured', async (_req, res) => {
   res.json(rows.map(toListing))
 })
 
+const NEW_DEFAULT = 10
+const NEW_MAX = 50
+
+/**
+ * @openapi
+ * /api/listings/new:
+ *   get:
+ *     tags: [Listings]
+ *     summary: Newest active listings for the Home "Fresh this week" shelf
+ *     security: []
+ *     parameters:
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, minimum: 1, maximum: 50, default: 10 }
+ *         description: Values below 1 become 1; above 50 become 50. Anything else means 10.
+ *     responses:
+ *       200:
+ *         description: Up to `limit` active listings, newest first.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items: { $ref: '#/components/schemas/Listing' }
+ *       500: { $ref: '#/components/responses/ServerError' }
+ */
+router.get('/listings/new', async (req, res) => {
+  const asked = int(req.query.limit)
+  const limit = asked === null ? NEW_DEFAULT : Math.min(Math.max(asked, 1), NEW_MAX)
+  const { rows } = await pool.query(
+    `SELECT ${LISTING_COLUMNS} FROM listings l
+     WHERE l.status = 'active'
+     ORDER BY ${TIEBREAK} LIMIT $1`,
+    [limit],
+  )
+  res.json(rows.map(toListing))
+})
+
 export default router
