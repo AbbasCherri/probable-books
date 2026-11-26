@@ -52,6 +52,13 @@ export async function setup() {
 export async function teardown(users) {
   // Listings and offers cascade with their users.
   await pool.query('DELETE FROM users WHERE id = ANY($1::text[])', [Object.values(users)])
+  // The test courses would otherwise show up in the real course index. Only remove the ones
+  // no listing is tagged with, so a file still running keeps the courses it uses.
+  await pool.query(
+    `DELETE FROM courses c WHERE c.code = ANY($1::text[])
+     AND NOT EXISTS (SELECT 1 FROM listing_courses lc WHERE lc.course_code = c.code)`,
+    [COURSES],
+  )
 }
 
 export async function endPool() {
