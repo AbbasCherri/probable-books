@@ -57,14 +57,11 @@ describe.skipIf(!process.env.TEST_HAS_DB)('user routes (real database)', () => {
 
   it('PATCH /users/me changes only what is sent and never the email', async () => {
     const a = await account({ yearOfStudy: 1 })
-    const res = await request(app)
-      .patch('/api/users/me')
-      .set(a.auth)
-      .send({
-        usualPickupSpot: 'Engineering quad',
-        email: 'hijack@test.invalid',
-        id: 'usr_x',
-      })
+    const res = await request(app).patch('/api/users/me').set(a.auth).send({
+      usualPickupSpot: 'Engineering quad',
+      email: 'hijack@test.invalid',
+      id: 'usr_x',
+    })
     expect(res.status).toBe(200)
     expect(res.body).toMatchObject({
       id: a.user.id,
