@@ -10,6 +10,7 @@ describe('GET /api/docs', () => {
     expect(res.body.components.securitySchemes.bearerAuth.scheme).toBe('bearer')
     expect(res.body.components.schemas.Error.required).toEqual(['message'])
     expect(res.body.paths['/api/health']).toBeDefined()
+    expect(Object.keys(res.body.paths).every((p) => p.startsWith('/api/'))).toBe(true)
   })
 
   it('serves the interactive page', async () => {

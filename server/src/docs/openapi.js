@@ -348,5 +348,13 @@ export const definition = {
 
 /** The full OpenAPI document: shared definition plus every route's @openapi block. */
 export function buildSpec() {
-  return swaggerJsdoc({ definition, apis: [routesGlob] })
+  const spec = swaggerJsdoc({ definition, apis: [routesGlob] })
+  // Routers are mounted under /api; owners may document paths with or without the prefix,
+  // so every path is shown (and tried) at its real address.
+  const paths = {}
+  for (const [path, item] of Object.entries(spec.paths ?? {})) {
+    paths[path.startsWith('/api/') ? path : `/api${path}`] = item
+  }
+  spec.paths = paths
+  return spec
 }
