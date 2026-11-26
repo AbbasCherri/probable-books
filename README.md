@@ -317,6 +317,22 @@ the amount error. The listing checks run first and the body checks last, and a t
 
 #### API docs
 
+Responses use the User shapes from the requirements (A6). A failed form answers
+`422 { message, fields }`; a missing or bad token on a Required endpoint answers
+`401 { "message": "Sign in to continue." }`.
+
+| Method | Path                 | Access   | Request                                                                               | Response                                                                                                 |
+| ------ | -------------------- | -------- | ------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| POST   | `/api/auth/register` | Public   | `{ name, email, password, yearOfStudy? }` (password at least 8 characters)            | `201 { user, token }`; 422 per field, or the email is taken; 429 after 10 attempts in 15 minutes         |
+| POST   | `/api/auth/login`    | Public   | `{ email, password }` (email ignores capitalisation and spaces)                       | `200 { user, token }`; `401 "That email and password don't match."`; 429 after 10 failures in 15 minutes |
+| GET    | `/api/auth/me`       | Required | None                                                                                  | `200` User (self)                                                                                        |
+| POST   | `/api/auth/logout`   | Public   | None                                                                                  | `204`, always                                                                                            |
+| GET    | `/api/users/:id`     | Public   | None                                                                                  | `200` User (public) plus `activeListingCount`; `404 "User not found."`                                   |
+| PATCH  | `/api/users/me`      | Required | Any of `name`, `yearOfStudy`, `usualPickupSpot`; `currentPassword` with `newPassword` | `200` User (self); 422 per field, `"That isn't your current password."`                                  |
+| DELETE | `/api/users/me`      | Required | None                                                                                  | `204`; the account, its listings and every related offer are removed                                     |
+| POST   | `/api/uploads`       | Required | multipart field `photo`: one JPEG, PNG or WebP, at most 5 MB                          | `201 { url }`, a public permanent address; 422 for wrong type, too large or no file                      |
+| GET    | `/api/uploads/:id`   | Public   | None                                                                                  | The image; `404 "Photo not found."`                                                                      |
+
 #### Contributions
 
 #### Challenges
