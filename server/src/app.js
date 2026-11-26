@@ -1,5 +1,6 @@
 import express from 'express'
 import helmet from 'helmet'
+import { docs } from './docs/router.js'
 import { errorHandler, notFoundRoute } from './lib/errors.js'
 import { optionalAuth } from './middleware/auth.js'
 import { corsMiddleware } from './middleware/cors.js'
@@ -33,6 +34,7 @@ app.use('/api', optionalAuth)
 // Order matters: the fixed words /listings/featured, /new and /mine must be matched before
 // /listings/:id, so the browse and write routers come before the detail router.
 app.use('/api', health)
+app.use('/api', docs)
 app.use('/api', auth)
 app.use('/api', users)
 app.use('/api', uploads)
