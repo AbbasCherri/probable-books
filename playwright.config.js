@@ -75,7 +75,10 @@ export default defineConfig({
   },
   projects,
   webServer: {
+    // The UI suite runs against the in-memory mock API (each browser context gets its own
+    // data), so tests never share or change a real database.
     command: `npm run dev -- --port ${PORT} --strictPort`,
+    env: { VITE_API_MOCK: '1' },
     url: BASE_URL,
     // Start a fresh server by default; PW_REUSE=1 attaches to one already on PORT (never in CI),
     // which could be another checkout's server.
