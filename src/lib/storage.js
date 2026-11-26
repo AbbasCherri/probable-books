@@ -26,6 +26,16 @@ export function writeJSON(key, value) {
   }
 }
 
+/** Store a raw string (no JSON quoting). */
+export function writeString(key, value) {
+  try {
+    window.localStorage.setItem(key, value)
+    return true
+  } catch {
+    return false
+  }
+}
+
 export function removeKey(key) {
   try {
     window.localStorage.removeItem(key)

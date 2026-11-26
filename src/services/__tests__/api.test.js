@@ -419,9 +419,12 @@ describe('mock controls', () => {
   })
 
   it('loads the seed with a dynamic import only', () => {
-    const src = readFileSync(resolve(process.cwd(), 'src/services/api.js'), 'utf8')
-    expect(src).not.toMatch(/^import .*['"]\.\/mock/m)
-    expect(src).toMatch(/await import\('\.\/mock'\)/)
+    const read = (f) => readFileSync(resolve(process.cwd(), f), 'utf8')
+    const mock = read('src/services/mock/mockApi.js')
+    expect(mock).not.toMatch(/^import .*['"]\.\/index/m)
+    expect(mock).toMatch(/await import\('\.\/index'\)/)
+    // The app never imports the mock statically, so it is not in the app's bundle.
+    expect(read('src/services/api.js')).not.toMatch(/^import .*mock/m)
   })
 
   it('resetDemoData restores the seed', async () => {

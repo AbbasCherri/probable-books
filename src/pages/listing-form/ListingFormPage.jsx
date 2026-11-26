@@ -51,6 +51,11 @@ const FORM_ID = 'listing-form'
  * 5.5 Create / Edit Listing: /sell and /listings/:listingId/edit (behind RequireAuth).
  * Loads what the form needs, then hands over to <ListingForm>.
  */
+// The API names a few fields differently from the form (A6 cents vs the dollars inputs).
+const SERVER_FIELD = { priceCents: 'price', retailCents: 'retail' }
+const fieldErrorsForForm = (fields) =>
+  Object.fromEntries(Object.entries(fields).map(([k, v]) => [SERVER_FIELD[k] ?? k, v]))
+
 export default function ListingFormPage() {
   const { listingId } = useParams()
   const [params] = useSearchParams()
@@ -151,6 +156,8 @@ function ListingForm({
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
   const [submitError, setSubmitError] = useState('')
+  // Field messages from a server 422, shown next to their inputs until that field changes.
+  const [serverErrors, setServerErrors] = useState({})
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
@@ -162,7 +169,8 @@ function ListingForm({
 
   const errors = useMemo(() => validateListing(form), [form])
   const summary = attempts > 0 ? errorList(errors) : []
-  const errorFor = (field) => (attempts > 0 || touched[field] ? errors[field] : undefined)
+  const errorFor = (field) =>
+    (attempts > 0 || touched[field] ? errors[field] : undefined) ?? serverErrors[field]
 
   const draftStatus = useDraftAutosave(form, !isEdit && dirty)
   const priceHint = usePriceHint(form.courseCodes[0], form.category, listingId)
@@ -208,6 +216,31 @@ function ListingForm({
   function update(field, value) {
     setForm((f) => ({ ...f, [field]: value }))
     setDirty(true)
+    setServerErrors((e) => {
+      if (!(field in e)) return e
+      const { [field]: _, ...rest } = e
+      return rest
+    })
+  }
+
+  /**
+   * Uploads photos that only exist in this browser (they carry a `file`), so the listing
+   * saves addresses that keep working. Uploaded photos keep their new url in the form, so a
+   * retry after a failed save does not upload them again.
+   */
+  async function uploadNewPhotos() {
+    const photos = []
+    for (const p of form.photos) {
+      if (!p.file) {
+        photos.push(p)
+        continue
+      }
+      const { url } = await api.uploadPhoto(p.file)
+      URL.revokeObjectURL(p.url)
+      photos.push({ key: p.key, url, alt: p.alt })
+    }
+    setForm((f) => ({ ...f, photos }))
+    return { ...form, photos }
   }
 
   const touch = (field) => () =>
@@ -222,8 +255,9 @@ function ListingForm({
     }
     setSaving(true)
     setSubmitError('')
+    setServerErrors({})
     try {
-      const data = listingFromForm(form)
+      const data = listingFromForm(await uploadNewPhotos())
       const saved = isEdit
         ? await api.updateListing(listingId, data)
         : await api.createListing(data)
@@ -237,6 +271,7 @@ function ListingForm({
       )
       navigate(`/listings/${saved?.id ?? listingId}`)
     } catch (err) {
+      if (err?.fields) setServerErrors(fieldErrorsForForm(err.fields))
       setSubmitError(
         err?.message || "That didn't save. Check your connection and try again.",
       )
