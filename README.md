@@ -309,9 +309,64 @@ the amount error. The listing checks run first and the body checks last, and a t
 
 #### API docs
 
+All paths are under `/api` and every endpoint needs a token. Errors use the shared format
+(`{ message, fields? }`); a missing or bad token answers `401 "Sign in to continue."`. The
+interactive versions are on `/api/docs`.
+
+| Method and path        | Access      | Request                                                                                                                 | Success                                                                         | Failures                                                                                                                                                                                                                                                                                                                     |
+| ---------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /listings`       | Required    | Listing fields (`title`, `category`, `courseCodes`, `condition`, `priceCents`, `pickupSpot`, optional extras, `status`) | 201 the new Listing (`featured` false, `sellerId` = caller)                     | 422 one `fields` entry per broken rule, all reported at once; `fields.status` "New listings start as a draft or active." for reserved or sold                                                                                                                                                                                |
+| `PATCH /listings/:id`  | Owner       | Only the fields that change, including `status` (`draft`, `active`, `reserved`, `sold`)                                 | 200 the full updated Listing, `updatedAt` now                                   | 403 "That listing is not yours."; 404 "This page was torn out." (unknown, or someone else's draft); 422 per field, checked on the listing as it would be after the change                                                                                                                                                    |
+| `DELETE /listings/:id` | Owner       | none                                                                                                                    | 204; every offer on the listing is removed with it                              | 403 "That listing is not yours."; 404 "This page was torn out."                                                                                                                                                                                                                                                              |
+| `GET /listings/mine`   | Required    | none                                                                                                                    | 200 My listings: every status including drafts, newest first, with `offerCount` | none beyond 401                                                                                                                                                                                                                                                                                                              |
+| `PATCH /offers/:id`    | Participant | `{ action }`: `accept`, `decline`, `counter` (with `counterCents`) or `withdraw`                                        | 200 the updated Offer                                                           | 404 "Offer not found."; 403 not yours, or the wrong party for the action ("Only the seller can counter.", "Only the seller can accept or decline a pending offer.", "Only the buyer can withdraw an offer."); 422 "Unknown action.", "This offer is no longer open.", listing reserved, sold or draft, `fields.counterCents` |
+
+Notes:
+
+- Title, category, courses, condition, price and pickup spot are required unless the listing is a
+  draft. A draft may leave them out, but anything it includes must still be valid, so an
+  incomplete draft saves and cannot be published until it is complete.
+- Course codes are accepted in any spelling (`chem201`, `CHEM-201`), stored as `CHEM 201`, with
+  duplicates removed and unknown codes rejected. ISBNs are checked (ISBN-10 and ISBN-13 check
+  digits) and returned as digits only. `pickupSpot` defaults to "Science building lobby".
+- Server-owned properties in a request (`id`, `sellerId`, `featured`, dates) are ignored.
+- Who may do what with an offer: the seller accepts, declines or counters a pending offer; the
+  buyer withdraws a pending or countered offer, or accepts or declines a counter. Accepting
+  reserves the listing in the same transaction and never changes the other offers.
+- A counter must be strictly above the offer and strictly below the asking price. When the buyer
+  accepts a counter, the agreed price is `counterCents`.
+
+Code: `server/src/routes/listings.write.js`, `listings.validate.js` and `offers.respond.js`, with
+tests in `server/tests/listings.write.test.js` and `offers.respond.test.js`.
+
 #### Contributions
 
+Phase 1: the Sell form (create and edit) and the Dashboard ledger, plus the first shared layout,
+UI, listing and annotation components and the sticky-note toast (see Team contributions above).
+Phase 2: the seller's side of the API. Creating, editing, publishing, reserving, selling and
+deleting listings with the ownership checks, the "My listings" list with pending offer counts,
+and answering offers (accept, decline, counter, withdraw). Every field rule uses the exact
+message from the requirements, each endpoint has its OpenAPI entry, and 88 tests cover each
+success and failure, every row of the offer actions table and the concurrent cases.
+
 #### Challenges
+
+**Two accepts at the same moment.** Accepting an offer has to mark the offer accepted and the
+listing reserved together, and two quick clicks (or two open tabs) must never reserve one listing
+for two buyers. Reading "is the listing active?" and then updating is not safe, because both
+requests can pass the check. The endpoint runs in one transaction and locks the listing row
+(`SELECT ... FOR UPDATE`) before it reads the offer, so a second accept waits, then sees the
+listing is reserved and gets "This listing is reserved for another buyer." Locking the listing
+before the offer in every path also keeps two requests from deadlocking. A test fires two accepts
+together and expects exactly one 200 and one 422.
+
+**Checking an edit against the whole listing.** A PATCH sends only the fields that change, but
+the rules depend on each other: lowering the price can break "retail must be above the asking
+price", and publishing a draft must apply every required-field rule. Validating only the sent
+fields missed these cases. The endpoint now lays the changes over the stored listing and runs the
+same validator as create on the result, using draft rules only when the resulting status is
+draft. To check that this did not break existing data, every one of the 140 seeded listings was
+re-saved through the endpoint and passed.
 
 ### Ayk
 
