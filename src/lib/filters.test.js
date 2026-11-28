@@ -25,6 +25,14 @@ describe('parseFilters', () => {
     expect(parse('q=%20%20%20').q).toBeUndefined()
   })
 
+  it('treats a search that is only a course code as that course', () => {
+    const f = parse('q=chem%20201')
+    expect(f.q).toBeUndefined()
+    expect(f.courses).toEqual(['CHEM 201'])
+    expect(parse('q=CHEM-201&course=MATH-218').courses).toEqual(['MATH 218', 'CHEM 201'])
+    expect(parse('q=organic').courses).toEqual([])
+  })
+
   it('normalises and dedupes course codes, dropping junk', () => {
     expect(
       parse('course=chem-201&course=CHEM%20201,math101&course=nope').courses,

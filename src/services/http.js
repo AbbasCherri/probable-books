@@ -12,8 +12,8 @@ export const SIGNED_OUT_EVENT = 'pb:signed-out'
 // Where the sign-in token lives. Normally localStorage, so you stay signed in across tabs and
 // restarts. A build with VITE_AUTH_STORAGE=session (the dev site, for parallel QA) keeps it in
 // sessionStorage instead: every tab then signs in on its own and tabs never swap identities.
-const useSession = () => import.meta.env.VITE_AUTH_STORAGE === 'session'
-const tokenStore = () => (useSession() ? window.sessionStorage : window.localStorage)
+const sessionMode = () => import.meta.env.VITE_AUTH_STORAGE === 'session'
+const tokenStore = () => (sessionMode() ? window.sessionStorage : window.localStorage)
 
 export const getToken = () => {
   try {

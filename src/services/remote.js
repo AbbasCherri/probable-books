@@ -112,6 +112,9 @@ export async function getCurrentUser() {
   }
 }
 
+/** Changes your own profile: any of { name, yearOfStudy, usualPickupSpot }. Resolves with the user. */
+export const updateProfile = (changes) => request('PATCH', '/users/me', { body: changes })
+
 // ---------- uploads ----------
 /** Uploads one photo before the listing is saved. Resolves with { url }. */
 export function uploadPhoto(file) {

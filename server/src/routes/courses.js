@@ -51,7 +51,7 @@ async function loadCourses() {
     `SELECT ${COURSE_COLUMNS},
             (SELECT count(*)::int
                FROM listing_courses lc JOIN listings l ON l.id = lc.listing_id
-              WHERE lc.course_code = c.code AND l.status = 'active') AS listing_count
+              WHERE lc.course_code = c.code AND l.status <> 'draft') AS listing_count
        FROM courses c
       ORDER BY c.code::text COLLATE "C"`,
   )
@@ -66,7 +66,9 @@ async function loadCourses() {
  *     summary: The full course index
  *     description: |
  *       Access: Public. Owner: Wazan. Every course in one response, ordered by code.
- *       listingCount counts active listings only. Answers may be up to 60 seconds old.
+ *       listingCount counts every listing Browse shows (active, reserved and sold, not
+ *       drafts), so it matches the number of results when you filter by the course. Answers
+ *       may be up to 60 seconds old.
  *     responses:
  *       200:
  *         description: All courses.

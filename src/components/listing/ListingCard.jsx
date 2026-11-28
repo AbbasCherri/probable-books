@@ -13,7 +13,7 @@ const moreChip =
 
 // The title reads the same at any heading level the page needs.
 const titleClass =
-  'font-sans text-body leading-snug font-semibold break-words text-ink-900 sm:text-h3'
+  'font-sans text-body leading-snug font-semibold [overflow-wrap:anywhere] text-ink-900 sm:text-h3'
 
 function More({ n, className }) {
   if (n <= 0) return null

@@ -121,9 +121,9 @@ export default function ListingFormPage() {
   )
 }
 
-function startingForm({ mode, initialForm, prefillCourse }) {
+function startingForm({ mode, initialForm, prefillCourse, userId }) {
   if (mode === 'edit') return { form: initialForm, restored: false }
-  const draft = readDraft()
+  const draft = readDraft(userId)
   let form = draft ? { ...EMPTY_FORM, ...draft, photos: [] } : { ...EMPTY_FORM }
   if (
     prefillCourse &&
@@ -148,7 +148,9 @@ function ListingForm({
   const navigate = useNavigate()
   const toast = useToast()
 
-  const [start] = useState(() => startingForm({ mode, initialForm, prefillCourse }))
+  const [start] = useState(() =>
+    startingForm({ mode, initialForm, prefillCourse, userId }),
+  )
   const [createdAt] = useState(() => new Date().toISOString())
   const [form, setForm] = useState(start.form)
   const [touched, setTouched] = useState({})
@@ -172,29 +174,35 @@ function ListingForm({
   const errorFor = (field) =>
     (attempts > 0 || touched[field] ? errors[field] : undefined) ?? serverErrors[field]
 
-  const draftStatus = useDraftAutosave(form, !isEdit && dirty)
+  const draftStatus = useDraftAutosave(form, !isEdit && dirty, userId)
   const priceHint = usePriceHint(form.courseCodes[0], form.category, listingId)
   const preview = useMemo(
     () => ({ ...previewFromForm(form, { listingId, sellerId: userId }), createdAt }),
     [form, listingId, userId, createdAt],
   )
 
+  // Is there something leaving would lose? An edit always is. A new listing autosaves as a
+  // draft, so only photos (not kept in drafts) or a browser that refuses to save drafts count.
+  const atRisk = isEdit
+    ? dirty
+    : dirty && (form.photos.length > 0 || draftStatus === 'failed')
+
   // Ask before leaving with unsaved changes (React Router data router).
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
-      dirty && !leaving.current && currentLocation.pathname !== nextLocation.pathname,
+      atRisk && !leaving.current && currentLocation.pathname !== nextLocation.pathname,
   )
 
-  // And before closing the tab: photos aren't kept in the draft.
+  // And before closing the tab.
   useEffect(() => {
-    if (!dirty) return undefined
+    if (!atRisk) return undefined
     const onBeforeUnload = (e) => {
       e.preventDefault()
       e.returnValue = ''
     }
     window.addEventListener('beforeunload', onBeforeUnload)
     return () => window.removeEventListener('beforeunload', onBeforeUnload)
-  }, [dirty])
+  }, [atRisk])
 
   // Free new photos' object URLs when the form goes away without saving them.
   useEffect(() => {
@@ -261,7 +269,7 @@ function ListingForm({
       const saved = isEdit
         ? await api.updateListing(listingId, data)
         : await api.createListing(data)
-      if (!isEdit) clearDraft()
+      if (!isEdit) clearDraft(userId)
       savedRef.current = true
       leaving.current = true
       toast(
@@ -295,7 +303,7 @@ function ListingForm({
 
   function handleSaveDraft() {
     toast(
-      writeDraft(form)
+      writeDraft(form, userId)
         ? "Draft saved on this device. Photos aren't kept in drafts."
         : "This browser won't save drafts.",
     )

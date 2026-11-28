@@ -44,7 +44,9 @@ describe('AuthProvider across tabs', () => {
     await screen.findByText('Clark Kent')
     api.getCurrentUser.mockResolvedValueOnce(null)
     act(() => {
-      window.dispatchEvent(new StorageEvent('storage', { key: TOKEN_KEY, newValue: null }))
+      window.dispatchEvent(
+        new StorageEvent('storage', { key: TOKEN_KEY, newValue: null }),
+      )
     })
     await screen.findByText('signed out')
   })

@@ -387,8 +387,9 @@ export async function getCourses() {
   await begin('getCourses')
   coursesCache = db.courses.map((c) => ({
     ...clone(c),
+    // Everything Browse shows for the course (active, reserved, sold), not drafts: same as the server.
     listingCount: db.listings.filter(
-      (l) => l.status === 'active' && l.courseCodes.includes(c.code),
+      (l) => l.status !== 'draft' && l.courseCodes.includes(c.code),
     ).length,
   }))
   return clone(coursesCache)
@@ -624,6 +625,32 @@ export async function getCurrentUser() {
   const id = currentUserId()
   const u = id && findUser(id)
   return u ? selfUser(u) : null
+}
+
+/** Same rules as PATCH /users/me for the fields the profile page edits. */
+export async function updateProfile(changes = {}) {
+  await begin('updateProfile')
+  const u = findUser(requireUser())
+  const fields = {}
+  if (Object.hasOwn(changes, 'name')) {
+    const name = typeof changes.name === 'string' ? changes.name.trim() : ''
+    if (name) u.name = name
+    else fields.name = 'Add your name.'
+  }
+  if (Object.hasOwn(changes, 'yearOfStudy')) {
+    const y = changes.yearOfStudy
+    if (y === null || (Number.isInteger(y) && y >= 1 && y <= 8)) u.yearOfStudy = y
+    else fields.yearOfStudy = 'Year of study is a number from 1 to 8.'
+  }
+  if (Object.hasOwn(changes, 'usualPickupSpot')) {
+    const spot = changes.usualPickupSpot
+    if (spot === null || PICKUP_SPOTS.includes(spot)) u.usualPickupSpot = spot
+    else fields.usualPickupSpot = 'Choose one of the pickup spots.'
+  }
+  if (Object.keys(fields).length)
+    throw new ApiError(422, Object.values(fields)[0], fields)
+  save()
+  return selfUser(u)
 }
 
 // ---------- uploads ----------

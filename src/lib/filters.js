@@ -29,9 +29,15 @@ export function parseFilters(sp) {
   const page = /^\d+$/.test(sp.get('page') ?? '')
     ? Number.parseInt(sp.get('page'), 10)
     : 1
+  // A search that is just a course code ("CHEM 201", "chem-201") means that course: titles never
+  // match a code, so searching it as text would always come back empty.
+  const text = sp.get('q')?.trim() || undefined
+  const typedCode = text ? normalizeCode(text) : null
   return {
-    q: sp.get('q')?.trim() || undefined,
-    courses: unique(list(sp, 'course').map(normalizeCode).filter(Boolean)),
+    q: typedCode ? undefined : text,
+    courses: unique(
+      [...list(sp, 'course').map(normalizeCode), typedCode].filter(Boolean),
+    ),
     categories: list(sp, 'category').filter((c) => Object.hasOwn(CATEGORIES, c)),
     conditions: list(sp, 'condition').filter((c) => Object.hasOwn(CONDITIONS, c)),
     minPrice,

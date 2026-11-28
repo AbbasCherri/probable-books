@@ -123,7 +123,12 @@ export function SiteHeader() {
         <div className={cn('hidden items-center gap-3 md:flex', !ready && 'invisible')}>
           {user ? (
             <>
-              <span className="text-small text-ink-500">{user.name}</span>
+              <Link
+                to="/profile"
+                className="text-small text-ink-500 underline-offset-2 hover:text-ink-900 hover:underline"
+              >
+                {user.name}
+              </Link>
               <Button variant="ghost" size="sm" onClick={signOut}>
                 Sign out
               </Button>
@@ -203,7 +208,12 @@ export function SiteHeader() {
           <div className="mt-3 flex flex-col gap-3 border-t border-paper-300 pt-4">
             {user ? (
               <>
-                <p className="text-small text-ink-500">Signed in as {user.name}</p>
+                <p className="text-small text-ink-500">
+                  Signed in as{' '}
+                  <Link to="/profile" className="underline underline-offset-2">
+                    {user.name}
+                  </Link>
+                </p>
                 <Button variant="outline" size="lg" onClick={signOut}>
                   Sign out
                 </Button>

@@ -63,6 +63,10 @@ export const routes = [
                 path: '/dashboard',
                 ...page(() => import('@/pages/dashboard/DashboardPage'), 6),
               },
+              {
+                path: '/profile',
+                ...page(() => import('@/pages/profile/ProfilePage'), 6),
+              },
             ],
           },
           { path: '*', ...page(() => import('@/pages/not-found/NotFoundPage'), 9) },

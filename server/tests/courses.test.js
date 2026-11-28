@@ -43,7 +43,8 @@ beforeAll(async () => {
     { code: C102, title: 'Testing II' },
     { code: C103, title: 'Testing III' },
   ])
-  // C101: two active listings (1001 and 2000) plus one of every other status.
+  // C101: two active listings (1001 and 2000) plus one of every other status. The index counts
+  // every listing Browse shows (4 here); the course stats below count the active ones only.
   const s = users.seller
   await insertListing(s, { price_cents: 2000 }, [C101])
   await insertListing(s, { price_cents: 1001 }, [C102, C101])
@@ -94,7 +95,7 @@ describe('GET /api/courses', () => {
       requiredMaterials: MATERIALS,
       tips: ['Any edition works.'],
       relatedCodes: [C102],
-      listingCount: 2,
+      listingCount: 4,
     })
     expect(res.body.find((c) => c.code === C103)).toMatchObject({
       tips: [],
@@ -104,8 +105,10 @@ describe('GET /api/courses', () => {
     })
   })
 
-  it('counts active listings only', async () => {
+  it('counts every listing Browse shows, but not drafts', async () => {
     const res = await request(app).get('/api/courses')
+    // C101: 2 active + 1 reserved + 1 sold; the draft is left out.
+    expect(res.body.find((c) => c.code === C101).listingCount).toBe(4)
     expect(res.body.find((c) => c.code === C102).listingCount).toBe(1)
   })
 

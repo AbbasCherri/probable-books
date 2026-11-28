@@ -42,6 +42,9 @@ export default function DashboardPage() {
   const sentQ = useAsync(() => api.getOffers({ direction: 'sent' }), [])
 
   const [busyId, setBusyId] = useState(null)
+  // After a change succeeds the row stays disabled until the ledger has reloaded, so it never
+  // shows the old state (Accept/Decline buttons on an offer that is already accepted).
+  const [settling, setSettling] = useState(false)
   const [askDeclineFor, setAskDeclineFor] = useState(null)
   const [toDelete, setToDelete] = useState(null)
   const focusTitle = useRef(false)
@@ -75,6 +78,7 @@ export default function DashboardPage() {
 
   /** Runs an API call, then reloads the ledger. Keeps the button disabled meanwhile. */
   async function run(id, action, success) {
+    setSettling(false)
     setBusyId(id)
     try {
       await action()
@@ -82,14 +86,18 @@ export default function DashboardPage() {
       listingsQ.retry()
       receivedQ.retry()
       sentQ.retry()
+      setSettling(true)
       return true
     } catch (err) {
       toast(err?.message || "That didn't go through. Try again.")
-      return false
-    } finally {
       setBusyId(null)
+      return false
     }
   }
+
+  // Busy until the reload that follows a change has finished (derived, so no effect needed).
+  const reloading = listingsQ.loading || receivedQ.loading || sentQ.loading
+  const shownBusyId = settling && !reloading ? null : busyId
 
   const setListingStatus = (listing, next) =>
     run(
@@ -236,7 +244,7 @@ export default function DashboardPage() {
               onSetStatus={setListingStatus}
               onDelete={setToDelete}
               onShowOffers={() => showTab('received')}
-              busyId={busyId}
+              busyId={shownBusyId}
             />
           )}
           {tab === 'received' && (
@@ -244,7 +252,7 @@ export default function DashboardPage() {
               listings={listings}
               offers={received}
               askDeclineFor={askDeclineFor}
-              busyId={busyId}
+              busyId={shownBusyId}
               onAccept={acceptOffer}
               onDecline={declineOffer}
               onCounter={counterOffer}
@@ -254,7 +262,11 @@ export default function DashboardPage() {
             />
           )}
           {tab === 'sent' && (
-            <OffersSentTab offers={sent} busyId={busyId} onWithdraw={withdrawOffer} />
+            <OffersSentTab
+              offers={sent}
+              busyId={shownBusyId}
+              onWithdraw={withdrawOffer}
+            />
           )}
         </TabPanel>
       )}
@@ -279,7 +291,7 @@ export default function DashboardPage() {
               <Button
                 variant="redpen"
                 onClick={confirmDelete}
-                disabled={busyId === toDelete.id}
+                disabled={shownBusyId === toDelete.id}
               >
                 Delete listing
               </Button>

@@ -35,6 +35,7 @@ export const login = call('login')
 export const register = call('register')
 export const logout = call('logout')
 export const getCurrentUser = call('getCurrentUser')
+export const updateProfile = call('updateProfile')
 export const uploadPhoto = call('uploadPhoto')
 
 /** Mock only (dev tools and tests): throw away every change and restore the seed. */

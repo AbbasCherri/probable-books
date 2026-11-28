@@ -344,7 +344,7 @@ export default function ListingDetailsPage() {
               </Footnote>
             )}
 
-            {!sold && status !== 'draft' && (
+            {status === 'active' && (
               <p className="font-semibold text-ink-900">
                 {listing.openToOffers ? (
                   <Highlight color="green">Open to offers</Highlight>
