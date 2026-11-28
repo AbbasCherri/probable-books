@@ -7,6 +7,7 @@ export const STATUS_FILTERS = [
   { id: 'active', label: 'Active' },
   { id: 'reserved', label: 'Reserved' },
   { id: 'sold', label: 'Sold' },
+  { id: 'draft', label: 'Drafts' },
 ]
 
 const dateFmt = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })

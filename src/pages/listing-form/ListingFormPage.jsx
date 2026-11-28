@@ -30,7 +30,7 @@ import { ErrorSummary } from './ErrorSummary'
 import { GradePicker } from './GradePicker'
 import { ListingPreview } from './ListingPreview'
 import { PhotoUploader } from './PhotoUploader'
-import { clearDraft, readDraft, useDraftAutosave, writeDraft } from './draft'
+import { clearDraft, readDraft, useDraftAutosave } from './draft'
 import {
   EMPTY_FORM,
   MAX_COURSES,
@@ -101,6 +101,7 @@ export default function ListingFormPage() {
         key={listingId}
         mode="edit"
         listingId={listingId}
+        isDraft={existing.data.status === 'draft'}
         initialForm={formFromListing(existing.data)}
         courses={courses.data ?? []}
         coursesLoading={!courses.data && !courses.error}
@@ -138,6 +139,7 @@ function startingForm({ mode, initialForm, prefillCourse, userId }) {
 function ListingForm({
   mode,
   listingId,
+  isDraft = false,
   initialForm,
   prefillCourse,
   courses,
@@ -157,6 +159,8 @@ function ListingForm({
   const [attempts, setAttempts] = useState(0) // failed submits; drives the error summary
   const [dirty, setDirty] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [savingDraft, setSavingDraft] = useState(false)
+  const busy = saving || savingDraft
   const [submitError, setSubmitError] = useState('')
   // Field messages from a server 422, shown next to their inputs until that field changes.
   const [serverErrors, setServerErrors] = useState({})
@@ -256,7 +260,7 @@ function ListingForm({
 
   async function handleSubmit(e) {
     e.preventDefault()
-    if (saving) return
+    if (busy) return
     if (errorList(errors).length) {
       setAttempts((n) => n + 1)
       return
@@ -266,6 +270,8 @@ function ListingForm({
     setServerErrors({})
     try {
       const data = listingFromForm(await uploadNewPhotos())
+      // Publishing a saved draft: the server checks the full rules before it goes live.
+      if (isDraft) data.status = 'active'
       const saved = isEdit
         ? await api.updateListing(listingId, data)
         : await api.createListing(data)
@@ -273,7 +279,7 @@ function ListingForm({
       savedRef.current = true
       leaving.current = true
       toast(
-        isEdit
+        isEdit && !isDraft
           ? 'Saved. Buyers see the changes now.'
           : 'Listed. Good luck with the sale.',
       )
@@ -301,28 +307,58 @@ function ListingForm({
     }
   }
 
-  function handleSaveDraft() {
-    toast(
-      writeDraft(form, userId)
-        ? "Draft saved on this device. Photos aren't kept in drafts."
-        : "This browser won't save drafts.",
-    )
+  /**
+   * Saves the form as a draft listing on the server (status draft), so it shows under Drafts
+   * in the ledger on any device. Drafts skip the required-field checks, but the server still
+   * rejects anything filled in wrongly, and those messages land next to their inputs.
+   * A new draft then opens in edit mode, where Publish finishes it.
+   */
+  async function handleSaveDraft() {
+    if (busy) return
+    setSavingDraft(true)
+    setSubmitError('')
+    setServerErrors({})
+    try {
+      const data = { ...listingFromForm(await uploadNewPhotos()), status: 'draft' }
+      if (isEdit) {
+        await api.updateListing(listingId, data)
+        setDirty(false)
+        setSavingDraft(false)
+        toast('Draft saved. Publish it when it’s ready.')
+        return
+      }
+      const saved = await api.createListing(data)
+      clearDraft(userId)
+      savedRef.current = true
+      leaving.current = true
+      toast('Draft saved to your ledger. Only you can see it.')
+      navigate(`/listings/${saved.id}/edit`, { replace: true })
+    } catch (err) {
+      if (err?.fields) setServerErrors(fieldErrorsForForm(err.fields))
+      setSubmitError(
+        err?.message || "The draft didn't save. Check your connection and try again.",
+      )
+      setSavingDraft(false)
+    }
   }
 
-  const verb = isEdit ? 'save' : 'publish'
-  const primaryLabel = isEdit ? 'Save changes' : 'Publish listing'
+  const publishes = !isEdit || isDraft
+  const canSaveDraft = !isEdit || isDraft
+  const verb = publishes ? 'publish' : 'save'
+  const primaryLabel = publishes ? 'Publish listing' : 'Save changes'
+  // The local copy is only a safety net for an unsaved form; Save draft keeps it on the server.
   const draftNote = isEdit
     ? dirty && 'Unsaved changes'
     : draftStatus === 'saved'
-      ? 'Draft saved'
+      ? 'Saved on this device'
       : draftStatus === 'failed'
-        ? "This browser won't save drafts"
-        : start.restored && 'Draft restored from this device'
+        ? "This browser won't keep your progress"
+        : start.restored && 'Restored from this device'
 
   return (
     <PageShell
       chapter={isEdit ? 'Index card, editing' : 'Index card'}
-      title={isEdit ? 'Edit listing' : 'Sell something'}
+      title={isDraft ? 'Finish your draft' : isEdit ? 'Edit listing' : 'Sell something'}
       margin={
         <div className="hidden lg:sticky lg:top-6 lg:block">
           <ListingPreview listing={preview} hint={priceHint} />
@@ -331,9 +367,11 @@ function ListingForm({
     >
       <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
         <p className="max-w-xl text-ink-700">
-          {isEdit
-            ? 'Changes show on your listing as soon as you save them.'
-            : 'Six short steps, about two minutes. Your draft saves as you go.'}
+          {isDraft
+            ? 'Only you can see this draft. Publish it when every step is filled in.'
+            : isEdit
+              ? 'Changes show on your listing as soon as you save them.'
+              : 'Six short steps, about two minutes. Not finished? Save a draft and come back.'}
         </p>
         <p
           role="status"
@@ -583,19 +621,27 @@ function ListingForm({
         {/* Actions in the page flow. On phones Publish lives in the sticky bar below instead. */}
         <div className="flex flex-wrap items-center gap-3 border-t-3 border-double border-paper-300 pt-6">
           <div className="hidden lg:block">
-            <Button type="submit" size="lg" disabled={saving}>
+            <Button type="submit" size="lg" disabled={busy}>
               {saving ? 'Saving…' : primaryLabel}
             </Button>
           </div>
-          {!isEdit && (
-            <Button variant="outline" size="lg" onClick={handleSaveDraft}>
-              Save draft
+          {canSaveDraft && (
+            <Button variant="outline" size="lg" onClick={handleSaveDraft} disabled={busy}>
+              {savingDraft ? 'Saving draft…' : 'Save draft'}
             </Button>
           )}
           <Button
             variant="ghost"
             size="lg"
-            onClick={() => navigate(isEdit ? `/listings/${listingId}` : '/dashboard')}
+            onClick={() =>
+              navigate(
+                isDraft
+                  ? '/dashboard?status=draft'
+                  : isEdit
+                    ? `/listings/${listingId}`
+                    : '/dashboard',
+              )
+            }
             className="underline underline-offset-3"
           >
             Cancel
@@ -632,7 +678,7 @@ function ListingForm({
           form={FORM_ID}
           size="lg"
           className="col-span-3"
-          disabled={saving}
+          disabled={busy}
         >
           {saving ? 'Saving…' : primaryLabel}
         </Button>
@@ -650,7 +696,7 @@ function ListingForm({
         <Button
           size="lg"
           className="mt-2 w-full"
-          disabled={saving}
+          disabled={busy}
           onClick={() => {
             formRef.current?.requestSubmit()
             setPreviewOpen(false)
