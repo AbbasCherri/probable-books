@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react'
 import * as api from '@/services/api'
-import { SIGNED_OUT_EVENT } from '@/services/http'
+import { SIGNED_OUT_EVENT, TOKEN_KEY } from '@/services/http'
 
 const AuthContext = createContext(null)
 
@@ -26,9 +26,21 @@ export function AuthProvider({ children }) {
     // The server rejected the stored token mid-session (expired, account deleted).
     const signedOut = () => setUser(null)
     window.addEventListener(SIGNED_OUT_EVENT, signedOut)
+    // Another tab signed in, out, or switched account: the token changed under this tab, and its
+    // requests already use the new one. Ask the server who that is so the header never lies.
+    // (key === null means the whole storage was cleared.)
+    const tokenChanged = (e) => {
+      if (e.key !== null && e.key !== TOKEN_KEY) return
+      api
+        .getCurrentUser()
+        .then((u) => alive && setUser(u))
+        .catch(() => alive && setUser(null))
+    }
+    window.addEventListener('storage', tokenChanged)
     return () => {
       alive = false
       window.removeEventListener(SIGNED_OUT_EVENT, signedOut)
+      window.removeEventListener('storage', tokenChanged)
     }
   }, [])
 
