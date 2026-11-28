@@ -125,7 +125,7 @@ export function SiteHeader() {
             <>
               <Link
                 to="/profile"
-                className="text-small text-ink-500 underline-offset-2 hover:text-ink-900 hover:underline"
+                className="inline-flex min-h-11 min-w-11 items-center text-small text-ink-500 underline-offset-2 hover:text-ink-900 hover:underline"
               >
                 {user.name}
               </Link>
@@ -208,12 +208,12 @@ export function SiteHeader() {
           <div className="mt-3 flex flex-col gap-3 border-t border-paper-300 pt-4">
             {user ? (
               <>
-                <p className="text-small text-ink-500">
-                  Signed in as{' '}
-                  <Link to="/profile" className="underline underline-offset-2">
-                    {user.name}
-                  </Link>
-                </p>
+                <Link
+                  to="/profile"
+                  className="flex min-h-11 items-center text-small text-ink-500 underline underline-offset-2"
+                >
+                  Signed in as {user.name}
+                </Link>
                 <Button variant="outline" size="lg" onClick={signOut}>
                   Sign out
                 </Button>
