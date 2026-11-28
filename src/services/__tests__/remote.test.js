@@ -172,6 +172,23 @@ describe('remote client', () => {
     expect(heard).toHaveBeenCalledOnce()
   })
 
+  it('keeps the token in sessionStorage when VITE_TOKEN_STORAGE=session', async () => {
+    vi.stubEnv('VITE_TOKEN_STORAGE', 'session')
+    sessionStorage.clear()
+    http.setToken('tab-token')
+    expect(sessionStorage.getItem(http.TOKEN_KEY)).toBe('tab-token')
+    expect(localStorage.getItem(http.TOKEN_KEY)).toBeNull()
+    expect(http.getToken()).toBe('tab-token')
+    http.clearToken()
+    expect(sessionStorage.getItem(http.TOKEN_KEY)).toBeNull()
+  })
+
+  it('keeps the token in localStorage by default', () => {
+    http.setToken('shared-token')
+    expect(localStorage.getItem(http.TOKEN_KEY)).toBe('shared-token')
+    expect(sessionStorage.getItem(http.TOKEN_KEY)).toBeNull()
+  })
+
   it('getCurrentUser skips the request when there is no token', async () => {
     const fetchMock = vi.fn()
     vi.stubGlobal('fetch', fetchMock)
