@@ -172,8 +172,8 @@ describe('remote client', () => {
     expect(heard).toHaveBeenCalledOnce()
   })
 
-  it('keeps the token in sessionStorage when VITE_TOKEN_STORAGE=session', async () => {
-    vi.stubEnv('VITE_TOKEN_STORAGE', 'session')
+  it('keeps the token in sessionStorage when VITE_AUTH_STORAGE=session', async () => {
+    vi.stubEnv('VITE_AUTH_STORAGE', 'session')
     sessionStorage.clear()
     http.setToken('tab-token')
     expect(sessionStorage.getItem(http.TOKEN_KEY)).toBe('tab-token')
