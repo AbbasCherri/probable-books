@@ -73,8 +73,11 @@ export default function DashboardPage() {
 
   const showTab = (id) => setQuery({ tab: id === 'listings' ? null : id })
 
-  /** Runs an API call, then reloads the ledger. Keeps the button disabled meanwhile. */
-  async function run(id, action, success) {
+  /**
+   * Runs an API call, then reloads the ledger. Keeps the button disabled meanwhile.
+   * `failure(err)` may replace the server's message in the error toast.
+   */
+  async function run(id, action, success, failure) {
     setBusyId(id)
     try {
       await action()
@@ -84,29 +87,36 @@ export default function DashboardPage() {
       sentQ.retry()
       return true
     } catch (err) {
-      toast(err?.message || "That didn't go through. Try again.")
+      toast(failure?.(err) || err?.message || "That didn't go through. Try again.")
       return false
     } finally {
       setBusyId(null)
     }
   }
 
-  const setListingStatus = (listing, next) =>
-    run(
+  const setListingStatus = (listing, next) => {
+    // Publishing a draft runs the full listing rules on the server; an unfinished draft
+    // comes back as a 422 listing every missing field, too long for a toast.
+    const publishing = listing.status === 'draft'
+    return run(
       listing.id,
       () => api.updateListing(listing.id, { status: next }),
-      STATUS_TOASTS[next],
+      publishing ? 'Published. Buyers can see it now.' : STATUS_TOASTS[next],
+      publishing
+        ? (err) =>
+            err?.status === 422 &&
+            'This draft isn’t finished yet. Choose Edit to fill in the rest.'
+        : undefined,
     )
+  }
 
   async function acceptOffer(offer) {
     const listing = listings.find((l) => l.id === offer.listingId)
     const ok = await run(
       offer.id,
-      async () => {
-        await api.respondToOffer(offer.id, 'accept')
-        // Accepting marks the listing reserved (5.6).
-        await api.updateListing(offer.listingId, { status: 'reserved' })
-      },
+      // The server reserves the listing in the same transaction as the accept (C3), so no
+      // second request is needed; the ledger reload below picks up the new status.
+      () => api.respondToOffer(offer.id, 'accept'),
       `Offer accepted. ${listing?.title ?? 'The listing'} is now reserved.`,
     )
     const others = received.filter(

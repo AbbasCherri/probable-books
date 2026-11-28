@@ -8,7 +8,8 @@ const itemClass =
   'flex min-h-11 w-full items-center px-3.5 text-left text-ink-900 no-underline transition-paper hover:bg-paper-200 focus-visible:bg-paper-200 focus-visible:outline-none'
 
 /**
- * Row actions for one listing: Edit, Mark reserved / active, Mark sold, Delete.
+ * Row actions for one listing: Edit, Publish (drafts), Mark reserved / active, Mark sold,
+ * Delete.
  * Menu-button pattern: arrows move, Esc closes and returns focus to the button.
  */
 export function RowActionsMenu({ listing, onSetStatus, onDelete, disabled }) {
@@ -103,6 +104,18 @@ export function RowActionsMenu({ listing, onSetStatus, onDelete, disabled }) {
               Edit
             </Link>
           </li>
+          {listing.status === 'draft' && (
+            <li role="none">
+              <button
+                type="button"
+                role="menuitem"
+                className={itemClass}
+                onClick={() => choose(() => onSetStatus(listing, 'active'))}
+              >
+                Publish
+              </button>
+            </li>
+          )}
           {listing.status === 'active' && (
             <li role="none">
               <button
@@ -127,7 +140,7 @@ export function RowActionsMenu({ listing, onSetStatus, onDelete, disabled }) {
               </button>
             </li>
           )}
-          {listing.status !== 'sold' && (
+          {(listing.status === 'active' || listing.status === 'reserved') && (
             <li role="none">
               <button
                 type="button"
