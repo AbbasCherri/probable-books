@@ -101,7 +101,11 @@ export function ListingsTab({
       </div>
 
       {rows.length === 0 && (
-        <p className="py-6 text-ink-700">Nothing marked {status} right now.</p>
+        <p className="py-6 text-ink-700">
+          {status === 'draft'
+            ? 'No drafts right now.'
+            : `Nothing marked ${status} right now.`}
+        </p>
       )}
 
       {/* md and up: the ledger table */}
