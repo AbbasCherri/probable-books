@@ -179,6 +179,9 @@ layer, [`src/services/http.js`](src/services/http.js).
 - **Sessions.** `login` and `register` keep the server's token in `localStorage` (`pb.token`) and
   send it as `Authorization: Bearer ...`. When the server answers 401 to a stored token (expired,
   or the account was deleted), the token is dropped and the app treats you as signed out.
+  Tabs stay in step: signing in, out or switching account in one tab updates the others. A build
+  with `VITE_TOKEN_STORAGE=session` keeps the token per tab (`sessionStorage`) instead, so several
+  testers can use different accounts in one browser. Use it on the dev site only.
   `/sell`, `/listings/:id/edit` and `/dashboard` then send you to the login page.
 - **Errors.** Every failure becomes an `ApiError` with the HTTP status, the server's message,
   per-field messages for 422s (forms show them next to each input) and suggested courses for an
